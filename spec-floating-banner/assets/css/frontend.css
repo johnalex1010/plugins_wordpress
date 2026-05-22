@@ -1,0 +1,35 @@
+.sfb-floating-banner {
+  bottom: 65px;
+  left: 10px;
+  position: fixed;
+  z-index: 9999;
+}
+
+.sfb-floating-banner__inner {
+  display: inline-block;
+  position: relative;
+}
+
+.sfb-floating-banner__close {
+  background: #000;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  height: 20px;
+  line-height: 20px;
+  padding: 0;
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  width: 20px;
+}
+
+.sfb-floating-banner__image {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  display: block;
+  height: auto;
+  max-width: 150px;
+}

@@ -1,0 +1,14 @@
+.shb-header-banner {
+  display: block;
+  width: 100%;
+}
+
+.shb-header-banner a {
+  display: block;
+}
+
+.shb-header-banner__image {
+  display: block;
+  height: auto;
+  width: 100%;
+}

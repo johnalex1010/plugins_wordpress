@@ -1,0 +1,97 @@
+.column-smp_publication_status,
+.column-smp_enabled {
+  width: 140px;
+}
+
+.column-smp_target_pages {
+  width: 32%;
+}
+
+.smp-status-badge {
+  border-radius: 999px;
+  color: #fff;
+  display: inline-block;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 4px 10px;
+}
+
+.smp-status-badge--published {
+  background: #008a20;
+}
+
+.smp-status-badge--unpublished {
+  background: #b32d2e;
+}
+
+.smp-empty-column {
+  color: #646970;
+}
+
+.smp-field {
+  margin: 1em 0;
+}
+
+.smp-field__control {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.smp-field__number,
+.smp-field__select {
+  display: block;
+  margin-top: 6px;
+}
+
+.smp-field__multiselect {
+  height: 200px;
+  width: 100%;
+}
+
+.smp-field__multiselect--small {
+  height: 100px;
+}
+
+.smp-page-selector__search {
+  margin-bottom: 8px;
+}
+
+.smp-page-selector__list {
+  border: 1px solid #ccc;
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.smp-page-selector__item {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.smp-page-selector__item input {
+  margin-top: 2px;
+}
+
+.smp-page-selector__item.is-hidden,
+.smp-page-selector__empty {
+  display: none;
+}
+
+.smp-page-selector__empty.is-visible {
+  display: block;
+}
+
+.smp-active-table {
+  margin-bottom: 16px;
+}
+
+.smp-image-preview {
+  margin-top: 10px;
+}
+
+.smp-image-preview img {
+  height: auto;
+  max-width: 100%;
+}

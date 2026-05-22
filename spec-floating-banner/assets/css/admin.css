@@ -1,0 +1,90 @@
+.column-sfb_publication_status {
+  width: 140px;
+}
+
+.column-sfb_target_pages {
+  width: 32%;
+}
+
+.sfb-status-badge {
+  border-radius: 999px;
+  color: #fff;
+  display: inline-block;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 4px 10px;
+}
+
+.sfb-status-badge--published {
+  background: #008a20;
+}
+
+.sfb-status-badge--unpublished {
+  background: #b32d2e;
+}
+
+.sfb-empty-column {
+  color: #646970;
+}
+
+.sfb-field {
+  margin: 1em 0;
+}
+
+.sfb-field__control {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.sfb-field__select {
+  display: block;
+  margin-top: 6px;
+}
+
+.sfb-preview {
+  margin-top: 10px;
+}
+
+.sfb-preview__image {
+  max-width: 200px;
+}
+
+.sfb-page-selector__search {
+  margin-bottom: 8px;
+}
+
+.sfb-page-list {
+  border: 1px solid #ccc;
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.sfb-page-list__item {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.sfb-page-list__item input {
+  margin-top: 2px;
+}
+
+.sfb-page-list__item.is-hidden,
+.sfb-page-selector__empty {
+  display: none;
+}
+
+.sfb-page-selector__empty.is-visible {
+  display: block;
+}
+
+.sfb-active-table {
+  margin-bottom: 16px;
+}
+
+.sfb-required-notice {
+  display: none;
+  margin: 12px 0;
+}
