@@ -3,8 +3,8 @@
 /**
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
- * Description: Gestiona modales promocionales por página y rol, con CTA, imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
- * Version: 3.1
+ * Description: Gestiona modales promocionales por página y rol, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
+ * Version: 3.2
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -38,7 +38,7 @@ function smp_register_cpt()
     'public' => false,
     'show_ui' => true,
     'menu_icon' => 'dashicons-format-image',
-    'supports' => ['title', 'editor']
+    'supports' => ['title']
   ]);
 }
 add_action('init', 'smp_register_cpt');

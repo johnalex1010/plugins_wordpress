@@ -4,7 +4,7 @@ Plugin WordPress para gestionar modales promocionales segmentados por página y 
 
 ## Descripción
 
-SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar modales con contenido editorial, imagen, CTA, frecuencia, roles y páginas asignadas. El plugin no crea URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
+SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar modales con imagen clickeable, frecuencia, roles y páginas asignadas. El plugin no crea URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
 
 ## Funcionalidades
 
@@ -14,11 +14,27 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Segmentación por roles de usuario.
 - Delay configurable.
 - Frecuencia `session` o `persistent` de 1 hora.
-- CTA con URL y target para enlazar la imagen del modal.
-- Imagen opcional, clickeable cuando existe CTA.
+- URL y target para enlazar la imagen del modal.
+- Imagen obligatoria para publicar.
 - Columnas administrativas de estado, activo y páginas asignadas.
 - Tabla informativa de páginas donde hay modales activos.
 - Assets separados para admin y frontend.
+
+## Capturas
+
+Sube las imagenes de referencia en `docs/images/` usando estos nombres para que se muestren aqui automaticamente.
+
+### Listado en administrador
+
+![Listado de modales](docs/images/admin-list.png)
+
+### Configuracion del modal
+
+![Configuracion del modal](docs/images/admin-config.png)
+
+### Vista en frontend
+
+![Modal en frontend](docs/images/frontend.png)
 
 ## Seguridad
 
@@ -30,7 +46,7 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Validación de páginas tipo `page`.
 - Validación de roles contra roles existentes de WordPress.
 - Escape de salida con `esc_html()`, `esc_attr()`, `esc_url()` y `wp_kses_post()`.
-- `rel="noopener noreferrer"` cuando el CTA abre en nueva pestaña.
+- `rel="noopener noreferrer"` cuando el enlace abre en nueva pestaña.
 
 ## SEO / GEO / AEO
 
@@ -52,6 +68,11 @@ spec-modal-checklist/
     js/
       admin.js
       frontend.js
+  docs/
+    images/
+      admin-list.png
+      admin-config.png
+      frontend.png
 ```
 
 ## Validación recomendada
@@ -66,7 +87,7 @@ Validar en WordPress:
 
 - Crear y editar modal.
 - Seleccionar imagen.
-- Guardar CTA y target.
+- Guardar URL y target.
 - Asignar páginas y roles.
 - Revisar columnas administrativas.
 - Verificar render frontend, cierre y frecuencia.

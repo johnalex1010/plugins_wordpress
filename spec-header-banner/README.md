@@ -25,6 +25,22 @@ Para evitar conflictos visuales, una página asignada a un banner publicado qued
 - Inserción inicial con `wp_body_open` y fallback en `wp_footer`.
 - Reubicación frontend: primero bajo breadcrumbs propios, Yoast, Rank Math o Breadcrumb NavXT; si no existen, bajo el header.
 
+## Capturas
+
+Sube las imagenes de referencia en `docs/images/` usando estos nombres para que se muestren aqui automaticamente.
+
+### Listado en administrador
+
+![Listado de banners de encabezado](docs/images/admin-list.png)
+
+### Configuracion del banner
+
+![Configuracion del banner de encabezado](docs/images/admin-config.png)
+
+### Vista en frontend
+
+![Banner de encabezado en frontend](docs/images/frontend.png)
+
 ## Seguridad
 
 - Bloqueo de acceso directo con `ABSPATH`.
@@ -57,6 +73,11 @@ spec-header-banner/
     js/
       admin.js
       frontend.js
+  docs/
+    images/
+      admin-list.png
+      admin-config.png
+      frontend.png
 ```
 
 ## Validación recomendada

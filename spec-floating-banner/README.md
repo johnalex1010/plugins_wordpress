@@ -23,6 +23,22 @@ El plugin está pensado para administración interna: el CPT no es público, no 
 - Frontend con cierre temporal sin persistencia.
 - Assets separados para admin y frontend.
 
+## Capturas
+
+Sube las imagenes de referencia en `docs/images/` usando estos nombres para que se muestren aqui automaticamente.
+
+### Listado en administrador
+
+![Listado de banners flotantes](docs/images/admin-list.png)
+
+### Configuracion del banner flotante
+
+![Configuracion del banner flotante](docs/images/admin-config.png)
+
+### Vista en frontend
+
+![Banner flotante en frontend](docs/images/frontend.png)
+
 ## Estructura
 
 ```text
@@ -36,6 +52,11 @@ spec-floating-banner/
     js/
       admin.js
       frontend.js
+  docs/
+    images/
+      admin-list.png
+      admin-config.png
+      frontend.png
 ```
 
 ## Seguridad
