@@ -24,6 +24,7 @@ Para evitar conflictos visuales, una página asignada a un banner publicado qued
 - Banner full width en frontend.
 - Inserción inicial con `wp_body_open` y fallback en `wp_footer`.
 - Reubicación frontend: primero bajo breadcrumbs propios, Yoast, Rank Math o Breadcrumb NavXT; si no existen, bajo el header.
+- Internacionalización mediante text domain `spec-header-banner`, traducción inglesa `en_US` y fallback interno para locales `en*`.
 
 ## Capturas
 
@@ -73,6 +74,11 @@ spec-header-banner/
     js/
       admin.js
       frontend.js
+  languages/
+    spec-header-banner.pot
+    spec-header-banner-en_US.po
+    spec-header-banner-en_US.mo
+    spec-header-banner-en_US.l10n.php
   docs/
     images/
       admin-list.png
@@ -87,6 +93,14 @@ php -l spec-header-banner.php
 node --check assets/js/admin.js
 node --check assets/js/frontend.js
 ```
+
+Validar traducciones:
+
+- Cambiar el idioma de WordPress o del usuario administrador a English (United States).
+- Confirmar que el metabox, columnas administrativas, buscador, avisos y modal de medios muestran textos en inglés.
+- Volver a Español y confirmar que los textos originales se mantienen.
+
+Nota: el plugin incluye fallback interno para locales `en*`, por lo que los textos visibles del administrador deben mostrarse en inglés incluso si WordPress no carga el archivo `.mo` o `.l10n.php`.
 
 Validar en WordPress:
 
@@ -113,7 +127,7 @@ El plugin intenta migrar una configuración antigua basada en opciones a un bann
 
 ## Rollback
 
-Restaurar `spec-header-banner.php`, `README.md` y los archivos dentro de `assets/`. El plugin usa post meta:
+Restaurar `spec-header-banner.php`, `README.md`, los archivos dentro de `assets/` y la carpeta `languages/`. El plugin usa post meta:
 
 - `_shb_image_id`
 - `_shb_link`

@@ -1,0 +1,99 @@
+# Copyright (C) 2026 UNIMINUTO Virtual
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: SPEC Floating Banner 1.9\n"
+"Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
+"POT-Creation-Date: 2026-05-24 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Codex\n"
+"X-Domain: spec-floating-banner\n"
+
+msgid "Floating Banners"
+msgstr ""
+
+msgid "Configuración del Banner"
+msgstr ""
+
+msgid "Estado"
+msgstr ""
+
+msgid "Páginas del banner"
+msgstr ""
+
+msgid "Publicado"
+msgstr ""
+
+msgid "No publicado"
+msgstr ""
+
+msgid "Sin páginas asignadas"
+msgstr ""
+
+msgid "Página #%d"
+msgstr ""
+
+msgid "Seleccionar imagen"
+msgstr ""
+
+msgid "Seleccionar Imagen"
+msgstr ""
+
+msgid "La imagen es obligatoria para publicar el banner."
+msgstr ""
+
+msgid "Selecciona una imagen antes de guardar el banner."
+msgstr ""
+
+msgid "Enlace del banner"
+msgstr ""
+
+msgid "https://..."
+msgstr ""
+
+msgid "El enlace es obligatorio y debe ser una URL válida."
+msgstr ""
+
+msgid "Target del enlace"
+msgstr ""
+
+msgid "Misma ventana (_self)"
+msgstr ""
+
+msgid "Nueva ventana (_blank)"
+msgstr ""
+
+msgid "Páginas donde está activo un banner flotante"
+msgstr ""
+
+msgid "Banner flotante"
+msgstr ""
+
+msgid "Páginas"
+msgstr ""
+
+msgid "No hay banners flotantes activos con páginas asignadas."
+msgstr ""
+
+msgid "Buscar páginas"
+msgstr ""
+
+msgid "Buscar páginas..."
+msgstr ""
+
+msgid "Páginas disponibles"
+msgstr ""
+
+msgid "No se encontraron páginas con ese criterio."
+msgstr ""
+
+msgid "El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo."
+msgstr ""
+
+msgid "Banner promocional"
+msgstr ""
+
+msgid "Cerrar banner"
+msgstr ""

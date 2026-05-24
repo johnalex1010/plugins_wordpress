@@ -1,0 +1,104 @@
+# Copyright (C) 2026 UNIMINUTO Virtual
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: SPEC Header Banner 4.4\n"
+"Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
+"POT-Creation-Date: 2026-05-24 00:00+0000\n"
+"PO-Revision-Date: 2026-05-24 00:00+0000\n"
+"Last-Translator: UNIMINUTO Virtual\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Codex\n"
+"X-Domain: spec-header-banner\n"
+
+msgid "Header Banners"
+msgstr "Header Banners"
+
+msgid "Banner migrado"
+msgstr "Migrated banner"
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "Páginas del banner"
+msgstr "Banner pages"
+
+msgid "Publicado"
+msgstr "Published"
+
+msgid "No publicado"
+msgstr "Unpublished"
+
+msgid "Sin páginas asignadas"
+msgstr "No assigned pages"
+
+msgid "Página #%d"
+msgstr "Page #%d"
+
+msgid "Seleccionar Imagen"
+msgstr "Select Image"
+
+msgid "Usar Imagen"
+msgstr "Use Image"
+
+msgid "Configuración del Banner"
+msgstr "Banner Settings"
+
+msgid "La imagen es obligatoria para publicar el banner."
+msgstr "An image is required to publish the banner."
+
+msgid "Selecciona una imagen antes de guardar el banner."
+msgstr "Select an image before saving the banner."
+
+msgid "Enlace del banner"
+msgstr "Banner link"
+
+msgid "https://... o #seccion"
+msgstr "https://... or #section"
+
+msgid "Acepta URLs completas o anclas internas como #formulario_inscripcion."
+msgstr "Accepts full URLs or internal anchors such as #formulario_inscripcion."
+
+msgid "Target del enlace"
+msgstr "Link target"
+
+msgid "Misma ventana (_self)"
+msgstr "Same window (_self)"
+
+msgid "Nueva ventana (_blank)"
+msgstr "New window (_blank)"
+
+msgid "Páginas"
+msgstr "Pages"
+
+msgid "Buscar páginas"
+msgstr "Search pages"
+
+msgid "Buscar páginas..."
+msgstr "Search pages..."
+
+msgid "Páginas disponibles"
+msgstr "Available pages"
+
+msgid "No se encontraron páginas con ese criterio."
+msgstr "No pages were found with that criterion."
+
+msgid "Páginas donde está activo un banner"
+msgstr "Pages where a banner is active"
+
+msgid "Banner"
+msgstr "Banner"
+
+msgid "No hay banners activos con páginas asignadas."
+msgstr "There are no active banners with assigned pages."
+
+msgid "Banner #%d"
+msgstr "Banner #%d"
+
+msgid "El banner quedó como borrador porque la imagen es obligatoria para publicarlo."
+msgstr "The banner was saved as a draft because an image is required to publish it."

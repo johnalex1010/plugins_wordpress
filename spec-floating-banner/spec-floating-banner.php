@@ -3,11 +3,81 @@
 /**
  * Plugin Name: SPEC Floating Banner
  * Description: Gestiona banners flotantes por página con imagen, enlace obligatorio, target configurable, cierre temporal y columnas administrativas de estado/asignación.
- * Version: 1.8
+ * Version: 1.9
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
+ * Text Domain: spec-floating-banner
+ * Domain Path: /languages
  */
 
 if (!defined('ABSPATH')) {
   exit;
+}
+
+add_action('plugins_loaded', function () {
+  load_plugin_textdomain('spec-floating-banner', false, dirname(plugin_basename(__FILE__)) . '/languages');
+
+  $locale = determine_locale();
+  $php_translation_file = plugin_dir_path(__FILE__) . 'languages/spec-floating-banner-' . $locale . '.l10n.php';
+
+  if (is_readable($php_translation_file)) {
+    load_textdomain('spec-floating-banner', $php_translation_file);
+  }
+});
+
+function sfb_translate($text)
+{
+  $locale = function_exists('determine_locale') ? determine_locale() : get_locale();
+
+  if (strpos($locale, 'en') !== 0) {
+    return __($text, 'spec-floating-banner');
+  }
+
+  $translations = [
+    'Configuración del Banner' => 'Banner Settings',
+    'ConfiguraciÃ³n del Banner' => 'Banner Settings',
+    'Seleccionar Imagen' => 'Select Image',
+    'Seleccionar imagen' => 'Select image',
+    'La imagen es obligatoria para publicar el banner.' => 'An image is required to publish the banner.',
+    'Selecciona una imagen antes de guardar el banner.' => 'Select an image before saving the banner.',
+    'Enlace del banner' => 'Banner link',
+    'El enlace es obligatorio y debe ser una URL válida.' => 'The link is required and must be a valid URL.',
+    'El enlace es obligatorio y debe ser una URL vÃ¡lida.' => 'The link is required and must be a valid URL.',
+    'Target del enlace' => 'Link target',
+    'Misma ventana (_self)' => 'Same window (_self)',
+    'Nueva ventana (_blank)' => 'New window (_blank)',
+    'Páginas donde está activo un banner flotante' => 'Pages where a floating banner is active',
+    'PÃ¡ginas donde estÃ¡ activo un banner flotante' => 'Pages where a floating banner is active',
+    'Banner flotante' => 'Floating banner',
+    'Páginas' => 'Pages',
+    'PÃ¡ginas' => 'Pages',
+    'No hay banners flotantes activos con páginas asignadas.' => 'There are no active floating banners with assigned pages.',
+    'No hay banners flotantes activos con pÃ¡ginas asignadas.' => 'There are no active floating banners with assigned pages.',
+    'Buscar páginas' => 'Search pages',
+    'Buscar pÃ¡ginas' => 'Search pages',
+    'Buscar páginas...' => 'Search pages...',
+    'Buscar pÃ¡ginas...' => 'Search pages...',
+    'Páginas disponibles' => 'Available pages',
+    'PÃ¡ginas disponibles' => 'Available pages',
+    'Página #%d' => 'Page #%d',
+    'PÃ¡gina #%d' => 'Page #%d',
+    'No se encontraron páginas con ese criterio.' => 'No pages were found with that criterion.',
+    'No se encontraron pÃ¡ginas con ese criterio.' => 'No pages were found with that criterion.',
+    'El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo.' => 'The banner was saved as a draft because the image and link are required to publish it.',
+    'El banner quedÃ³ como borrador porque la imagen y el enlace son obligatorios para publicarlo.' => 'The banner was saved as a draft because the image and link are required to publish it.',
+  ];
+
+  return isset($translations[$text]) ? $translations[$text] : __($text, 'spec-floating-banner');
+}
+
+function sfb_esc_html($text)
+{
+  return esc_html(sfb_translate($text));
+}
+
+function sfb_esc_attr($text)
+{
+  return esc_attr(sfb_translate($text));
 }
 
 /* =====================================================
@@ -15,7 +85,7 @@ if (!defined('ABSPATH')) {
 ===================================================== */
 add_action('init', function () {
   register_post_type('sfb_banner', [
-    'label' => 'Floating Banners',
+    'label' => __('Floating Banners', 'spec-floating-banner'),
     'public' => false,
     'show_ui' => true,
     'menu_icon' => 'dashicons-format-image',
@@ -27,7 +97,7 @@ add_action('init', function () {
    2. METABOX
 ===================================================== */
 add_action('add_meta_boxes', function () {
-  add_meta_box('sfb_config', 'Configuración del Banner', 'sfb_render_metabox', 'sfb_banner');
+  add_meta_box('sfb_config', sfb_translate('Configuración del Banner'), 'sfb_render_metabox', 'sfb_banner');
 });
 
 /* =====================================================
@@ -99,7 +169,7 @@ function sfb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '1.8';
+  return file_exists($file) ? (string) filemtime($file) : '1.9';
 }
 
 function sfb_get_current_page_banners()
@@ -189,6 +259,10 @@ add_action('admin_enqueue_scripts', function ($hook) {
     sfb_get_asset_version('assets/js/admin.js'),
     true
   );
+
+  wp_localize_script('sfb-admin', 'SFB_ADMIN_I18N', [
+    'mediaTitle' => sfb_translate('Seleccionar imagen'),
+  ]);
 });
 
 function sfb_render_metabox($post)
@@ -261,11 +335,11 @@ function sfb_render_metabox($post)
 ?>
 
   <div>
-    <button type="button" class="button" id="sfb_upload_btn">Seleccionar Imagen</button>
+    <button type="button" class="button" id="sfb_upload_btn"><?php echo sfb_esc_html('Seleccionar Imagen'); ?></button>
     <input type="hidden" name="sfb_image_id" id="sfb_image_id" value="<?php echo esc_attr($image_id); ?>">
-    <p class="description">La imagen es obligatoria para publicar el banner.</p>
+    <p class="description"><?php echo sfb_esc_html('La imagen es obligatoria para publicar el banner.'); ?></p>
     <div id="sfb_required_notice" class="notice notice-error sfb-required-notice">
-      <p><?php echo esc_html__('Selecciona una imagen antes de guardar el banner.', 'spec-floating-banner'); ?></p>
+      <p><?php echo sfb_esc_html('Selecciona una imagen antes de guardar el banner.'); ?></p>
     </div>
 
     <div class="sfb-preview">
@@ -273,25 +347,25 @@ function sfb_render_metabox($post)
     </div>
 
     <p class="sfb-field">
-      <label for="sfb_link"><strong>Enlace del banner</strong></label>
-      <input type="url" name="sfb_link" id="sfb_link" class="sfb-field__control" placeholder="https://..." value="<?php echo esc_attr($link); ?>" required>
-      <span class="description">El enlace es obligatorio y debe ser una URL válida.</span>
+      <label for="sfb_link"><strong><?php echo sfb_esc_html('Enlace del banner'); ?></strong></label>
+      <input type="url" name="sfb_link" id="sfb_link" class="sfb-field__control" placeholder="<?php echo sfb_esc_attr('https://...'); ?>" value="<?php echo esc_attr($link); ?>" required>
+      <span class="description"><?php echo sfb_esc_html('El enlace es obligatorio y debe ser una URL válida.'); ?></span>
     </p>
 
     <p class="sfb-field">
-      <label for="sfb_target"><strong>Target del enlace</strong></label>
+      <label for="sfb_target"><strong><?php echo sfb_esc_html('Target del enlace'); ?></strong></label>
       <select name="sfb_target" id="sfb_target" class="sfb-field__select">
-        <option value="_self" <?php selected($target, '_self'); ?>>Misma ventana (_self)</option>
-        <option value="_blank" <?php selected($target, '_blank'); ?>>Nueva ventana (_blank)</option>
+        <option value="_self" <?php selected($target, '_self'); ?>><?php echo sfb_esc_html('Misma ventana (_self)'); ?></option>
+        <option value="_blank" <?php selected($target, '_blank'); ?>><?php echo sfb_esc_html('Nueva ventana (_blank)'); ?></option>
       </select>
     </p>
 
-    <h4>Páginas donde está activo un banner flotante</h4>
+    <h4><?php echo sfb_esc_html('Páginas donde está activo un banner flotante'); ?></h4>
     <table class="widefat striped sfb-active-table">
       <thead>
         <tr>
-          <th scope="col">Banner flotante</th>
-          <th scope="col">Páginas</th>
+          <th scope="col"><?php echo sfb_esc_html('Banner flotante'); ?></th>
+          <th scope="col"><?php echo sfb_esc_html('Páginas'); ?></th>
         </tr>
       </thead>
       <tbody>
@@ -304,25 +378,25 @@ function sfb_render_metabox($post)
           <?php endforeach; ?>
         <?php else : ?>
           <tr>
-            <td colspan="2"><?php echo esc_html__('No hay banners flotantes activos con páginas asignadas.', 'spec-floating-banner'); ?></td>
+            <td colspan="2"><?php echo sfb_esc_html('No hay banners flotantes activos con páginas asignadas.'); ?></td>
           </tr>
         <?php endif; ?>
       </tbody>
     </table>
 
-    <h4>Páginas</h4>
+    <h4><?php echo sfb_esc_html('Páginas'); ?></h4>
     <div class="sfb-page-selector">
-      <label for="sfb_page_search" class="screen-reader-text"><?php echo esc_html__('Buscar páginas', 'spec-floating-banner'); ?></label>
-      <input type="search" id="sfb_page_search" class="sfb-field__control sfb-page-selector__search" placeholder="<?php echo esc_attr__('Buscar páginas...', 'spec-floating-banner'); ?>">
+      <label for="sfb_page_search" class="screen-reader-text"><?php echo sfb_esc_html('Buscar páginas'); ?></label>
+      <input type="search" id="sfb_page_search" class="sfb-field__control sfb-page-selector__search" placeholder="<?php echo sfb_esc_attr('Buscar páginas...'); ?>">
 
-      <div class="sfb-page-list" role="group" aria-label="<?php echo esc_attr__('Páginas disponibles', 'spec-floating-banner'); ?>">
+      <div class="sfb-page-list" role="group" aria-label="<?php echo sfb_esc_attr('Páginas disponibles'); ?>">
         <?php
         $pages = get_pages();
 
         foreach ($pages as $page) {
           $page_id = absint($page->ID);
           $page_title = get_the_title($page_id);
-          $page_title = $page_title ? $page_title : sprintf(__('Página #%d', 'spec-floating-banner'), $page_id);
+          $page_title = $page_title ? $page_title : sprintf(sfb_translate('Página #%d'), $page_id);
           $disabled = in_array($page_id, $used_pages, true) ? 'disabled' : '';
           $checked = in_array($page_id, $selected_pages, true) ? 'checked' : '';
 
@@ -334,7 +408,7 @@ function sfb_render_metabox($post)
         ?>
       </div>
 
-      <p class="description sfb-page-selector__empty"><?php echo esc_html__('No se encontraron páginas con ese criterio.', 'spec-floating-banner'); ?></p>
+      <p class="description sfb-page-selector__empty"><?php echo sfb_esc_html('No se encontraron páginas con ese criterio.'); ?></p>
     </div>
   </div>
 
@@ -422,7 +496,7 @@ add_action('admin_notices', function () {
   delete_transient($notice_key);
 ?>
   <div class="notice notice-error is-dismissible">
-    <p><?php echo esc_html__('El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo.', 'spec-floating-banner'); ?></p>
+    <p><?php echo sfb_esc_html('El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo.'); ?></p>
   </div>
 <?php
 });

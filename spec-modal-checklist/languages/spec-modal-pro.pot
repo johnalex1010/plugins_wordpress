@@ -1,0 +1,111 @@
+# Copyright (C) 2026 UNIMINUTO Virtual
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: SPEC Modal Pro 3.3\n"
+"Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
+"POT-Creation-Date: 2026-05-24 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Codex\n"
+"X-Domain: spec-modal-pro\n"
+
+msgid "Modales"
+msgstr ""
+
+msgid "Estado"
+msgstr ""
+
+msgid "Activo"
+msgstr ""
+
+msgid "Páginas del modal"
+msgstr ""
+
+msgid "Publicado"
+msgstr ""
+
+msgid "No publicado"
+msgstr ""
+
+msgid "Sí"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Sin páginas asignadas"
+msgstr ""
+
+msgid "Página #%d"
+msgstr ""
+
+msgid "Seleccionar Imagen"
+msgstr ""
+
+msgid "Usar Imagen"
+msgstr ""
+
+msgid "Configuración del Modal"
+msgstr ""
+
+msgid "Modal activo"
+msgstr ""
+
+msgid "Delay (ms)"
+msgstr ""
+
+msgid "Frecuencia"
+msgstr ""
+
+msgid "Una vez por sesión"
+msgstr ""
+
+msgid "Persistente (1 hora)"
+msgstr ""
+
+msgid "Páginas"
+msgstr ""
+
+msgid "Buscar páginas"
+msgstr ""
+
+msgid "Buscar páginas..."
+msgstr ""
+
+msgid "Páginas disponibles"
+msgstr ""
+
+msgid "No se encontraron páginas con ese criterio."
+msgstr ""
+
+msgid "Páginas donde está activo un modal"
+msgstr ""
+
+msgid "Modal"
+msgstr ""
+
+msgid "No hay modales activos con páginas asignadas."
+msgstr ""
+
+msgid "Modal #%d"
+msgstr ""
+
+msgid "URL del Botón"
+msgstr ""
+
+msgid "Target"
+msgstr ""
+
+msgid "Misma pestaña"
+msgstr ""
+
+msgid "Nueva pestaña"
+msgstr ""
+
+msgid "Imagen del Modal"
+msgstr ""
+
+msgid "Cerrar modal"
+msgstr ""
