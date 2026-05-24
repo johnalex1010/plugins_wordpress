@@ -97,9 +97,6 @@ msgstr "There are no active modals with assigned pages."
 msgid "Modal #%d"
 msgstr "Modal #%d"
 
-msgid "Roles"
-msgstr "Roles"
-
 msgid "URL del Botón"
 msgstr "Button URL"
 

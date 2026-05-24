@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
- * Description: Gestiona modales promocionales por página y rol, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
+ * Description: Gestiona modales promocionales por página, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
  * Version: 3.3
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -77,7 +77,6 @@ function smp_translate($text)
     'No hay modales activos con páginas asignadas.' => 'There are no active modals with assigned pages.',
     'No hay modales activos con pÃ¡ginas asignadas.' => 'There are no active modals with assigned pages.',
     'Modal #%d' => 'Modal #%d',
-    'Roles' => 'Roles',
     'URL del Botón' => 'Button URL',
     'URL del BotÃ³n' => 'Button URL',
     'Target' => 'Target',
@@ -349,7 +348,6 @@ function smp_meta_callback($post)
   $delay = absint(get_post_meta($post->ID, '_smp_delay', true));
   $delay = $delay ?: 2000;
   $pages = array_map('absint', (array) get_post_meta($post->ID, '_smp_pages', true));
-  $roles = (array) get_post_meta($post->ID, '_smp_roles', true);
   $frequency = get_post_meta($post->ID, '_smp_frequency', true);
   $frequency = in_array($frequency, ['session', 'persistent'], true) ? $frequency : 'session';
   $cta_url = get_post_meta($post->ID, '_smp_cta_url', true);
@@ -442,17 +440,6 @@ function smp_meta_callback($post)
       </tbody>
     </table>
 
-    <h4><?php echo smp_esc_html('Roles'); ?></h4>
-    <select name="smp_roles[]" multiple class="smp-field__multiselect smp-field__multiselect--small">
-      <?php foreach (wp_roles()->roles as $key => $role) : ?>
-        <option value="<?php echo esc_attr($key); ?>" <?php selected(in_array($key, $roles, true)); ?>>
-          <?php echo esc_html($role['name']); ?>
-        </option>
-      <?php endforeach; ?>
-    </select>
-
-    <hr>
-
     <p class="smp-field">
       <label for="smp_cta_url"><strong><?php echo smp_esc_html('URL del Botón'); ?></strong></label>
       <input type="url" name="smp_cta_url" id="smp_cta_url" class="smp-field__control" value="<?php echo esc_attr($cta_url); ?>">
@@ -510,13 +497,6 @@ function smp_save_meta($post_id)
 
   $used_pages = smp_get_used_pages_by_active_modals($post_id);
   update_post_meta($post_id, '_smp_pages', array_values(array_diff($requested_pages, $used_pages)));
-
-  $valid_roles = array_keys(wp_roles()->roles);
-  $requested_roles = isset($_POST['smp_roles']) ? (array) wp_unslash($_POST['smp_roles']) : [];
-  $requested_roles = array_values(array_filter(array_map('sanitize_key', $requested_roles), function ($role) use ($valid_roles) {
-    return in_array($role, $valid_roles, true);
-  }));
-  update_post_meta($post_id, '_smp_roles', $requested_roles);
 
   $cta_url = isset($_POST['smp_cta_url']) ? esc_url_raw(wp_unslash($_POST['smp_cta_url'])) : '';
   update_post_meta($post_id, '_smp_cta_url', $cta_url);
@@ -608,16 +588,6 @@ function smp_get_current_page_modal_ids()
 
     if ($pages && !array_intersect($pages, $context_page_ids)) {
       continue;
-    }
-
-    $roles = array_map('sanitize_key', (array) get_post_meta($modal_id, '_smp_roles', true));
-
-    if ($roles) {
-      $user = wp_get_current_user();
-
-      if (!array_intersect($roles, (array) $user->roles)) {
-        continue;
-      }
     }
 
     $modal_ids[] = absint($modal_id);

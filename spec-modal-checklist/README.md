@@ -1,17 +1,16 @@
 # SPEC Modal Pro
 
-Plugin WordPress para gestionar modales promocionales segmentados por página y rol.
+Plugin WordPress para gestionar modales promocionales segmentados por página.
 
 ## Descripción
 
-SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar modales con imagen clickeable, frecuencia, roles y páginas asignadas. El plugin no crea URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
+SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar modales con imagen clickeable, frecuencia y páginas asignadas. El plugin no crea URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
 
 ## Funcionalidades
 
 - CPT privado para modales.
 - Estado activo/inactivo por modal.
 - Segmentación por páginas.
-- Segmentación por roles de usuario.
 - Delay configurable.
 - Frecuencia `session` o `persistent` de 1 hora.
 - URL y target para enlazar la imagen del modal.
@@ -45,7 +44,6 @@ Sube las imagenes de referencia en `docs/images/` usando estos nombres para que 
 - Sanitización con `absint()`, `sanitize_key()`, `sanitize_text_field()` y `esc_url_raw()`.
 - Allowlists para frecuencia, target y modo de imagen.
 - Validación de páginas tipo `page`.
-- Validación de roles contra roles existentes de WordPress.
 - Escape de salida con `esc_html()`, `esc_attr()`, `esc_url()` y `wp_kses_post()`.
 - `rel="noopener noreferrer"` cuando el enlace abre en nueva pestaña.
 
@@ -92,7 +90,7 @@ node --check assets/js/frontend.js
 Validar traducciones:
 
 - Cambiar el idioma de WordPress o del usuario administrador a English (United States).
-- Confirmar que el CPT, metabox, columnas administrativas, roles, frecuencia, selector de medios y botón de cierre muestran textos en inglés.
+- Confirmar que el CPT, metabox, columnas administrativas, frecuencia, selector de medios y botón de cierre muestran textos en inglés.
 - Volver a Español y confirmar que los textos originales se mantienen.
 
 Nota: el plugin incluye fallback interno para locales `en*`, por lo que los textos visibles del administrador y el botón de cierre del modal deben mostrarse en inglés incluso si WordPress no carga el archivo `.mo` o `.l10n.php`.
@@ -102,7 +100,7 @@ Validar en WordPress:
 - Crear y editar modal.
 - Seleccionar imagen.
 - Guardar URL y target.
-- Asignar páginas y roles.
+- Asignar páginas.
 - Revisar columnas administrativas.
 - Verificar render frontend, cierre y frecuencia.
 
@@ -114,7 +112,6 @@ Restaurar `spec-modal-checklist.php`, los archivos en `assets/` y la carpeta `la
 - `_smp_delay`
 - `_smp_frequency`
 - `_smp_pages`
-- `_smp_roles`
 - `_smp_cta_url`
 - `_smp_cta_target`
 - `_smp_image_id`

@@ -92,9 +92,6 @@ msgstr ""
 msgid "Modal #%d"
 msgstr ""
 
-msgid "Roles"
-msgstr ""
-
 msgid "URL del Botón"
 msgstr ""
 

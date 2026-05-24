@@ -38,7 +38,6 @@ return [
       'Modal' => ['Modal'],
       'No hay modales activos con páginas asignadas.' => ['There are no active modals with assigned pages.'],
       'Modal #%d' => ['Modal #%d'],
-      'Roles' => ['Roles'],
       'URL del Botón' => ['Button URL'],
       'Target' => ['Target'],
       'Misma pestaña' => ['Same tab'],
