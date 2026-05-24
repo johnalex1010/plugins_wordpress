@@ -22,6 +22,7 @@ El plugin está pensado para administración interna: el CPT no es público, no 
   - Páginas del banner.
 - Frontend con cierre temporal sin persistencia.
 - Assets separados para admin y frontend.
+- Internacionalización mediante text domain `spec-floating-banner` y traducción inglesa `en_US`.
 
 ## Capturas
 
@@ -52,6 +53,11 @@ spec-floating-banner/
     js/
       admin.js
       frontend.js
+  languages/
+    spec-floating-banner.pot
+    spec-floating-banner-en_US.po
+    spec-floating-banner-en_US.mo
+    spec-floating-banner-en_US.l10n.php
   docs/
     images/
       admin-list.png
@@ -116,6 +122,12 @@ node --check assets/js/admin.js
 node --check assets/js/frontend.js
 ```
 
+Validar traducciones:
+
+- Cambiar el idioma de WordPress o del usuario administrador a English (United States).
+- Confirmar que el CPT, metabox, columnas administrativas, buscador, avisos, selector de medios y botón de cierre muestran textos en inglés.
+- Volver a Español y confirmar que los textos originales se mantienen.
+
 También se recomienda validar en WordPress:
 
 - Creación y edición de banner.
@@ -131,8 +143,9 @@ Para revertir una versión problemática:
 
 1. Restaurar `spec-floating-banner.php`.
 2. Restaurar o eliminar los archivos modificados en `assets/`.
-3. Limpiar cachés del sitio si aplica.
-4. Verificar que el CPT `sfb_banner` siga accesible en el admin.
+3. Restaurar o eliminar la carpeta `languages/`.
+4. Limpiar cachés del sitio si aplica.
+5. Verificar que el CPT `sfb_banner` siga accesible en el admin.
 
 No hay migraciones de base de datos. El plugin usa post meta estándar de WordPress:
 

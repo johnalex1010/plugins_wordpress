@@ -4,7 +4,7 @@
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
  * Description: Gestiona modales promocionales por página y rol, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
- * Version: 3.2
+ * Version: 3.3
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -12,9 +12,95 @@
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: spec-modal-pro
+ * Domain Path: /languages
  */
 
 defined('ABSPATH') || exit;
+
+add_action('plugins_loaded', function () {
+  load_plugin_textdomain('spec-modal-pro', false, dirname(plugin_basename(__FILE__)) . '/languages');
+
+  $locale = determine_locale();
+  $php_translation_file = plugin_dir_path(__FILE__) . 'languages/spec-modal-pro-' . $locale . '.l10n.php';
+
+  if (is_readable($php_translation_file)) {
+    load_textdomain('spec-modal-pro', $php_translation_file);
+  }
+});
+
+function smp_translate($text)
+{
+  $locale = function_exists('determine_locale') ? determine_locale() : get_locale();
+
+  if (strpos($locale, 'en') !== 0) {
+    return __($text, 'spec-modal-pro');
+  }
+
+  $translations = [
+    'Modales' => 'Modals',
+    'Estado' => 'Status',
+    'Activo' => 'Active',
+    'Páginas del modal' => 'Modal pages',
+    'PÃ¡ginas del modal' => 'Modal pages',
+    'Publicado' => 'Published',
+    'No publicado' => 'Unpublished',
+    'Sí' => 'Yes',
+    'SÃ­' => 'Yes',
+    'No' => 'No',
+    'Sin páginas asignadas' => 'No assigned pages',
+    'Sin pÃ¡ginas asignadas' => 'No assigned pages',
+    'Página #%d' => 'Page #%d',
+    'PÃ¡gina #%d' => 'Page #%d',
+    'Seleccionar Imagen' => 'Select Image',
+    'Usar Imagen' => 'Use Image',
+    'Configuración del Modal' => 'Modal Settings',
+    'ConfiguraciÃ³n del Modal' => 'Modal Settings',
+    'Modal activo' => 'Active modal',
+    'Delay (ms)' => 'Delay (ms)',
+    'Frecuencia' => 'Frequency',
+    'Una vez por sesión' => 'Once per session',
+    'Una vez por sesiÃ³n' => 'Once per session',
+    'Persistente (1 hora)' => 'Persistent (1 hour)',
+    'Páginas' => 'Pages',
+    'PÃ¡ginas' => 'Pages',
+    'Buscar páginas' => 'Search pages',
+    'Buscar pÃ¡ginas' => 'Search pages',
+    'Buscar páginas...' => 'Search pages...',
+    'Buscar pÃ¡ginas...' => 'Search pages...',
+    'Páginas disponibles' => 'Available pages',
+    'PÃ¡ginas disponibles' => 'Available pages',
+    'No se encontraron páginas con ese criterio.' => 'No pages were found with that criterion.',
+    'No se encontraron pÃ¡ginas con ese criterio.' => 'No pages were found with that criterion.',
+    'Páginas donde está activo un modal' => 'Pages where a modal is active',
+    'PÃ¡ginas donde estÃ¡ activo un modal' => 'Pages where a modal is active',
+    'Modal' => 'Modal',
+    'No hay modales activos con páginas asignadas.' => 'There are no active modals with assigned pages.',
+    'No hay modales activos con pÃ¡ginas asignadas.' => 'There are no active modals with assigned pages.',
+    'Modal #%d' => 'Modal #%d',
+    'Roles' => 'Roles',
+    'URL del Botón' => 'Button URL',
+    'URL del BotÃ³n' => 'Button URL',
+    'Target' => 'Target',
+    'Misma pestaña' => 'Same tab',
+    'Misma pestaÃ±a' => 'Same tab',
+    'Nueva pestaña' => 'New tab',
+    'Nueva pestaÃ±a' => 'New tab',
+    'Imagen del Modal' => 'Modal Image',
+    'Cerrar modal' => 'Close modal',
+  ];
+
+  return isset($translations[$text]) ? $translations[$text] : __($text, 'spec-modal-pro');
+}
+
+function smp_esc_html($text)
+{
+  return esc_html(smp_translate($text));
+}
+
+function smp_esc_attr($text)
+{
+  return esc_attr(smp_translate($text));
+}
 
 function smp_get_asset_url($path)
 {
@@ -25,7 +111,7 @@ function smp_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '3.0';
+  return file_exists($file) ? (string) filemtime($file) : '3.3';
 }
 
 /* =====================================================
@@ -34,7 +120,7 @@ function smp_get_asset_version($path)
 function smp_register_cpt()
 {
   register_post_type('smp_modal', [
-    'label' => 'Modales',
+    'label' => smp_translate('Modales'),
     'public' => false,
     'show_ui' => true,
     'menu_icon' => 'dashicons-format-image',
@@ -53,9 +139,9 @@ add_filter('manage_smp_modal_posts_columns', function ($columns) {
     $new_columns[$key] = $label;
 
     if ($key === 'title') {
-      $new_columns['smp_publication_status'] = __('Estado', 'spec-modal-pro');
-      $new_columns['smp_enabled'] = __('Activo', 'spec-modal-pro');
-      $new_columns['smp_target_pages'] = __('Páginas del modal', 'spec-modal-pro');
+      $new_columns['smp_publication_status'] = smp_translate('Estado');
+      $new_columns['smp_enabled'] = smp_translate('Activo');
+      $new_columns['smp_target_pages'] = smp_translate('Páginas del modal');
     }
   }
 
@@ -66,7 +152,7 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
   if ($column === 'smp_publication_status') {
     $is_published = get_post_status($post_id) === 'publish';
     $status_class = $is_published ? 'smp-status-badge--published' : 'smp-status-badge--unpublished';
-    $status_label = $is_published ? __('Publicado', 'spec-modal-pro') : __('No publicado', 'spec-modal-pro');
+    $status_label = $is_published ? smp_translate('Publicado') : smp_translate('No publicado');
 
     echo '<span class="smp-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
     return;
@@ -76,7 +162,7 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
     $enabled = get_post_meta($post_id, '_smp_enabled', true);
     $enabled = ($enabled === '' || $enabled === null) ? '1' : $enabled;
     $status_class = $enabled === '1' ? 'smp-status-badge--published' : 'smp-status-badge--unpublished';
-    $status_label = $enabled === '1' ? __('Sí', 'spec-modal-pro') : __('No', 'spec-modal-pro');
+    $status_label = $enabled === '1' ? smp_translate('Sí') : smp_translate('No');
 
     echo '<span class="smp-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
     return;
@@ -86,7 +172,7 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
     $page_ids = array_filter(array_map('absint', (array) get_post_meta($post_id, '_smp_pages', true)));
 
     if (!$page_ids) {
-      echo '<span class="smp-empty-column">' . esc_html__('Sin páginas asignadas', 'spec-modal-pro') . '</span>';
+      echo '<span class="smp-empty-column">' . smp_esc_html('Sin páginas asignadas') . '</span>';
       return;
     }
 
@@ -98,7 +184,7 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
       }
 
       $page_title = get_the_title($page_id);
-      $page_title = $page_title ? $page_title : sprintf(__('Página #%d', 'spec-modal-pro'), $page_id);
+      $page_title = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $page_id);
       $edit_link = get_edit_post_link($page_id);
 
       $page_links[] = $edit_link
@@ -106,7 +192,7 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
         : esc_html($page_title);
     }
 
-    echo $page_links ? wp_kses_post(implode(', ', $page_links)) : '<span class="smp-empty-column">' . esc_html__('Sin páginas asignadas', 'spec-modal-pro') . '</span>';
+    echo $page_links ? wp_kses_post(implode(', ', $page_links)) : '<span class="smp-empty-column">' . smp_esc_html('Sin páginas asignadas') . '</span>';
   }
 }, 10, 2);
 
@@ -139,6 +225,11 @@ add_action('admin_enqueue_scripts', function ($hook) {
     smp_get_asset_version('assets/js/admin.js'),
     true
   );
+
+  wp_localize_script('smp-admin', 'SMP_ADMIN_I18N', [
+    'mediaTitle' => smp_translate('Seleccionar Imagen'),
+    'mediaButton' => smp_translate('Usar Imagen'),
+  ]);
 });
 
 add_action('wp_enqueue_scripts', function () {
@@ -163,7 +254,7 @@ add_action('wp_enqueue_scripts', function () {
 ===================================================== */
 function smp_add_meta_boxes()
 {
-  add_meta_box('smp_settings', 'Configuración del Modal', 'smp_meta_callback', 'smp_modal', 'normal', 'high');
+  add_meta_box('smp_settings', smp_translate('Configuración del Modal'), 'smp_meta_callback', 'smp_modal', 'normal', 'high');
 }
 add_action('add_meta_boxes', 'smp_add_meta_boxes');
 
@@ -275,36 +366,36 @@ function smp_meta_callback($post)
     <p class="smp-field">
       <label>
         <input type="checkbox" name="smp_enabled" value="1" <?php checked($enabled, '1'); ?>>
-        <strong><?php echo esc_html__('Modal activo', 'spec-modal-pro'); ?></strong>
+        <strong><?php echo smp_esc_html('Modal activo'); ?></strong>
       </label>
     </p>
 
     <p class="smp-field">
-      <label for="smp_delay"><strong><?php echo esc_html__('Delay (ms)', 'spec-modal-pro'); ?></strong></label>
+      <label for="smp_delay"><strong><?php echo smp_esc_html('Delay (ms)'); ?></strong></label>
       <input type="number" name="smp_delay" id="smp_delay" class="smp-field__number" min="0" step="100" value="<?php echo esc_attr($delay); ?>">
     </p>
 
     <p class="smp-field">
-      <label for="smp_frequency"><strong><?php echo esc_html__('Frecuencia', 'spec-modal-pro'); ?></strong></label>
+      <label for="smp_frequency"><strong><?php echo smp_esc_html('Frecuencia'); ?></strong></label>
       <select name="smp_frequency" id="smp_frequency" class="smp-field__select">
-        <option value="session" <?php selected($frequency, 'session'); ?>><?php echo esc_html__('Una vez por sesión', 'spec-modal-pro'); ?></option>
-        <option value="persistent" <?php selected($frequency, 'persistent'); ?>><?php echo esc_html__('Persistente (1 hora)', 'spec-modal-pro'); ?></option>
+        <option value="session" <?php selected($frequency, 'session'); ?>><?php echo smp_esc_html('Una vez por sesión'); ?></option>
+        <option value="persistent" <?php selected($frequency, 'persistent'); ?>><?php echo smp_esc_html('Persistente (1 hora)'); ?></option>
       </select>
     </p>
 
     <hr>
 
-    <h4><?php echo esc_html__('Páginas', 'spec-modal-pro'); ?></h4>
+    <h4><?php echo smp_esc_html('Páginas'); ?></h4>
     <div class="smp-page-selector">
-      <label for="smp_page_search" class="screen-reader-text"><?php echo esc_html__('Buscar páginas', 'spec-modal-pro'); ?></label>
-      <input type="search" id="smp_page_search" class="smp-field__control smp-page-selector__search" placeholder="<?php echo esc_attr__('Buscar páginas...', 'spec-modal-pro'); ?>">
+      <label for="smp_page_search" class="screen-reader-text"><?php echo smp_esc_html('Buscar páginas'); ?></label>
+      <input type="search" id="smp_page_search" class="smp-field__control smp-page-selector__search" placeholder="<?php echo smp_esc_attr('Buscar páginas...'); ?>">
 
-      <div class="smp-page-selector__list" role="group" aria-label="<?php echo esc_attr__('Páginas disponibles', 'spec-modal-pro'); ?>">
+      <div class="smp-page-selector__list" role="group" aria-label="<?php echo smp_esc_attr('Páginas disponibles'); ?>">
         <?php foreach (get_pages() as $page) : ?>
           <?php
           $page_id = absint($page->ID);
           $page_title = get_the_title($page_id);
-          $page_title = $page_title ? $page_title : sprintf(__('Página #%d', 'spec-modal-pro'), $page_id);
+          $page_title = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $page_id);
           $is_selected = in_array($page_id, $pages, true);
           $is_used = in_array($page_id, $used_pages, true);
           ?>
@@ -315,31 +406,31 @@ function smp_meta_callback($post)
         <?php endforeach; ?>
       </div>
 
-      <p class="description smp-page-selector__empty"><?php echo esc_html__('No se encontraron páginas con ese criterio.', 'spec-modal-pro'); ?></p>
+      <p class="description smp-page-selector__empty"><?php echo smp_esc_html('No se encontraron páginas con ese criterio.'); ?></p>
     </div>
 
-    <h4><?php echo esc_html__('Páginas donde está activo un modal', 'spec-modal-pro'); ?></h4>
+    <h4><?php echo smp_esc_html('Páginas donde está activo un modal'); ?></h4>
     <table class="widefat striped smp-active-table">
       <thead>
         <tr>
-          <th scope="col"><?php echo esc_html__('Modal', 'spec-modal-pro'); ?></th>
-          <th scope="col"><?php echo esc_html__('Páginas', 'spec-modal-pro'); ?></th>
+          <th scope="col"><?php echo smp_esc_html('Modal'); ?></th>
+          <th scope="col"><?php echo smp_esc_html('Páginas'); ?></th>
         </tr>
       </thead>
       <tbody>
         <?php if (!$active_items) : ?>
           <tr>
-            <td colspan="2"><?php echo esc_html__('No hay modales activos con páginas asignadas.', 'spec-modal-pro'); ?></td>
+            <td colspan="2"><?php echo smp_esc_html('No hay modales activos con páginas asignadas.'); ?></td>
           </tr>
         <?php else : ?>
           <?php foreach ($active_items as $item) : ?>
             <?php
-            $modal_title = $item['title'] ? $item['title'] : sprintf(__('Modal #%d', 'spec-modal-pro'), $item['id']);
+            $modal_title = $item['title'] ? $item['title'] : sprintf(smp_translate('Modal #%d'), $item['id']);
             $page_titles = [];
 
             foreach ($item['pages'] as $page_id) {
               $page_title = get_the_title($page_id);
-              $page_titles[] = $page_title ? $page_title : sprintf(__('Página #%d', 'spec-modal-pro'), $page_id);
+              $page_titles[] = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $page_id);
             }
             ?>
             <tr>
@@ -351,7 +442,7 @@ function smp_meta_callback($post)
       </tbody>
     </table>
 
-    <h4><?php echo esc_html__('Roles', 'spec-modal-pro'); ?></h4>
+    <h4><?php echo smp_esc_html('Roles'); ?></h4>
     <select name="smp_roles[]" multiple class="smp-field__multiselect smp-field__multiselect--small">
       <?php foreach (wp_roles()->roles as $key => $role) : ?>
         <option value="<?php echo esc_attr($key); ?>" <?php selected(in_array($key, $roles, true)); ?>>
@@ -363,23 +454,23 @@ function smp_meta_callback($post)
     <hr>
 
     <p class="smp-field">
-      <label for="smp_cta_url"><strong><?php echo esc_html__('URL del Botón', 'spec-modal-pro'); ?></strong></label>
+      <label for="smp_cta_url"><strong><?php echo smp_esc_html('URL del Botón'); ?></strong></label>
       <input type="url" name="smp_cta_url" id="smp_cta_url" class="smp-field__control" value="<?php echo esc_attr($cta_url); ?>">
     </p>
 
     <p class="smp-field">
-      <label for="smp_cta_target"><strong><?php echo esc_html__('Target', 'spec-modal-pro'); ?></strong></label>
+      <label for="smp_cta_target"><strong><?php echo smp_esc_html('Target'); ?></strong></label>
       <select name="smp_cta_target" id="smp_cta_target" class="smp-field__select">
-        <option value="_self" <?php selected($cta_target, '_self'); ?>><?php echo esc_html__('Misma pestaña', 'spec-modal-pro'); ?></option>
-        <option value="_blank" <?php selected($cta_target, '_blank'); ?>><?php echo esc_html__('Nueva pestaña', 'spec-modal-pro'); ?></option>
+        <option value="_self" <?php selected($cta_target, '_self'); ?>><?php echo smp_esc_html('Misma pestaña'); ?></option>
+        <option value="_blank" <?php selected($cta_target, '_blank'); ?>><?php echo smp_esc_html('Nueva pestaña'); ?></option>
       </select>
     </p>
 
     <hr>
 
-    <h4><?php echo esc_html__('Imagen del Modal', 'spec-modal-pro'); ?></h4>
+    <h4><?php echo smp_esc_html('Imagen del Modal'); ?></h4>
     <input type="hidden" id="smp_image_id" name="smp_image_id" value="<?php echo esc_attr($image_id); ?>">
-    <button type="button" class="button" id="smp_upload_image_button"><?php echo esc_html__('Seleccionar Imagen', 'spec-modal-pro'); ?></button>
+    <button type="button" class="button" id="smp_upload_image_button"><?php echo smp_esc_html('Seleccionar Imagen'); ?></button>
 
     <div id="smp_image_preview" class="smp-image-preview">
       <?php
@@ -578,7 +669,7 @@ function smp_render_modals()
 ?>
     <div class="smp-overlay" id="smp-<?php echo esc_attr($modal_id); ?>" data-smp-delay="<?php echo esc_attr($delay); ?>" data-smp-frequency="<?php echo esc_attr($frequency); ?>">
       <div class="smp-modal" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr(get_the_title($modal_id)); ?>">
-        <button type="button" class="smp-close" aria-label="<?php echo esc_attr__('Cerrar modal', 'spec-modal-pro'); ?>">&times;</button>
+        <button type="button" class="smp-close" aria-label="<?php echo smp_esc_attr('Cerrar modal'); ?>">&times;</button>
 
         <?php if ($image_html) : ?>
           <div class="smp-image-wrapper">

@@ -19,6 +19,7 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Columnas administrativas de estado, activo y páginas asignadas.
 - Tabla informativa de páginas donde hay modales activos.
 - Assets separados para admin y frontend.
+- Internacionalización mediante text domain `spec-modal-pro` y traducción inglesa `en_US`.
 
 ## Capturas
 
@@ -68,6 +69,11 @@ spec-modal-checklist/
     js/
       admin.js
       frontend.js
+  languages/
+    spec-modal-pro.pot
+    spec-modal-pro-en_US.po
+    spec-modal-pro-en_US.mo
+    spec-modal-pro-en_US.l10n.php
   docs/
     images/
       admin-list.png
@@ -83,6 +89,12 @@ node --check assets/js/admin.js
 node --check assets/js/frontend.js
 ```
 
+Validar traducciones:
+
+- Cambiar el idioma de WordPress o del usuario administrador a English (United States).
+- Confirmar que el CPT, metabox, columnas administrativas, roles, frecuencia, selector de medios y botón de cierre muestran textos en inglés.
+- Volver a Español y confirmar que los textos originales se mantienen.
+
 Validar en WordPress:
 
 - Crear y editar modal.
@@ -94,7 +106,7 @@ Validar en WordPress:
 
 ## Rollback
 
-Restaurar `spec-modal-checklist.php` y los archivos en `assets/`. No hay migraciones de base de datos; el plugin usa post meta estándar:
+Restaurar `spec-modal-checklist.php`, los archivos en `assets/` y la carpeta `languages/`. No hay migraciones de base de datos; el plugin usa post meta estándar:
 
 - `_smp_enabled`
 - `_smp_delay`

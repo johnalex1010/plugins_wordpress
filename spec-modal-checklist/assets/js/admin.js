@@ -20,9 +20,9 @@
       }
 
       mediaFrame = wp.media({
-        title: 'Seleccionar Imagen',
+        title: window.SMP_ADMIN_I18N && window.SMP_ADMIN_I18N.mediaTitle ? window.SMP_ADMIN_I18N.mediaTitle : 'Seleccionar Imagen',
         button: {
-          text: 'Usar Imagen'
+          text: window.SMP_ADMIN_I18N && window.SMP_ADMIN_I18N.mediaButton ? window.SMP_ADMIN_I18N.mediaButton : 'Usar Imagen'
         },
         multiple: false
       });

@@ -1,0 +1,104 @@
+# Copyright (C) 2026 UNIMINUTO Virtual
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: SPEC Floating Banner 1.9\n"
+"Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
+"POT-Creation-Date: 2026-05-24 00:00+0000\n"
+"PO-Revision-Date: 2026-05-24 00:00+0000\n"
+"Last-Translator: UNIMINUTO Virtual\n"
+"Language-Team: English\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Codex\n"
+"X-Domain: spec-floating-banner\n"
+
+msgid "Floating Banners"
+msgstr "Floating Banners"
+
+msgid "Configuración del Banner"
+msgstr "Banner Settings"
+
+msgid "Estado"
+msgstr "Status"
+
+msgid "Páginas del banner"
+msgstr "Banner pages"
+
+msgid "Publicado"
+msgstr "Published"
+
+msgid "No publicado"
+msgstr "Unpublished"
+
+msgid "Sin páginas asignadas"
+msgstr "No assigned pages"
+
+msgid "Página #%d"
+msgstr "Page #%d"
+
+msgid "Seleccionar imagen"
+msgstr "Select image"
+
+msgid "Seleccionar Imagen"
+msgstr "Select Image"
+
+msgid "La imagen es obligatoria para publicar el banner."
+msgstr "An image is required to publish the banner."
+
+msgid "Selecciona una imagen antes de guardar el banner."
+msgstr "Select an image before saving the banner."
+
+msgid "Enlace del banner"
+msgstr "Banner link"
+
+msgid "https://..."
+msgstr "https://..."
+
+msgid "El enlace es obligatorio y debe ser una URL válida."
+msgstr "The link is required and must be a valid URL."
+
+msgid "Target del enlace"
+msgstr "Link target"
+
+msgid "Misma ventana (_self)"
+msgstr "Same window (_self)"
+
+msgid "Nueva ventana (_blank)"
+msgstr "New window (_blank)"
+
+msgid "Páginas donde está activo un banner flotante"
+msgstr "Pages where a floating banner is active"
+
+msgid "Banner flotante"
+msgstr "Floating banner"
+
+msgid "Páginas"
+msgstr "Pages"
+
+msgid "No hay banners flotantes activos con páginas asignadas."
+msgstr "There are no active floating banners with assigned pages."
+
+msgid "Buscar páginas"
+msgstr "Search pages"
+
+msgid "Buscar páginas..."
+msgstr "Search pages..."
+
+msgid "Páginas disponibles"
+msgstr "Available pages"
+
+msgid "No se encontraron páginas con ese criterio."
+msgstr "No pages were found with that criterion."
+
+msgid "El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo."
+msgstr "The banner was saved as a draft because the image and link are required to publish it."
+
+msgid "Banner promocional"
+msgstr "Promotional banner"
+
+msgid "Cerrar banner"
+msgstr "Close banner"

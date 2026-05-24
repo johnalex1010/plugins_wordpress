@@ -18,7 +18,7 @@
       }
 
       mediaFrame = wp.media({
-        title: 'Seleccionar imagen',
+        title: window.SFB_ADMIN_I18N && window.SFB_ADMIN_I18N.mediaTitle ? window.SFB_ADMIN_I18N.mediaTitle : 'Seleccionar imagen',
         multiple: false
       });
 
