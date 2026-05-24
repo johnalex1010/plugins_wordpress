@@ -19,7 +19,7 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Columnas administrativas de estado, activo y páginas asignadas.
 - Tabla informativa de páginas donde hay modales activos.
 - Assets separados para admin y frontend.
-- Internacionalización mediante text domain `spec-modal-pro` y traducción inglesa `en_US`.
+- Internacionalización mediante text domain `spec-modal-pro`, traducción inglesa `en_US` y fallback interno para locales `en*`.
 
 ## Capturas
 
@@ -94,6 +94,8 @@ Validar traducciones:
 - Cambiar el idioma de WordPress o del usuario administrador a English (United States).
 - Confirmar que el CPT, metabox, columnas administrativas, roles, frecuencia, selector de medios y botón de cierre muestran textos en inglés.
 - Volver a Español y confirmar que los textos originales se mantienen.
+
+Nota: el plugin incluye fallback interno para locales `en*`, por lo que los textos visibles del administrador y el botón de cierre del modal deben mostrarse en inglés incluso si WordPress no carga el archivo `.mo` o `.l10n.php`.
 
 Validar en WordPress:
 

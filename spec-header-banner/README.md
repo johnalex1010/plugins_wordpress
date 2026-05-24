@@ -24,7 +24,7 @@ Para evitar conflictos visuales, una página asignada a un banner publicado qued
 - Banner full width en frontend.
 - Inserción inicial con `wp_body_open` y fallback en `wp_footer`.
 - Reubicación frontend: primero bajo breadcrumbs propios, Yoast, Rank Math o Breadcrumb NavXT; si no existen, bajo el header.
-- Internacionalización mediante text domain `spec-header-banner` y traducción inglesa `en_US`.
+- Internacionalización mediante text domain `spec-header-banner`, traducción inglesa `en_US` y fallback interno para locales `en*`.
 
 ## Capturas
 
@@ -99,6 +99,8 @@ Validar traducciones:
 - Cambiar el idioma de WordPress o del usuario administrador a English (United States).
 - Confirmar que el metabox, columnas administrativas, buscador, avisos y modal de medios muestran textos en inglés.
 - Volver a Español y confirmar que los textos originales se mantienen.
+
+Nota: el plugin incluye fallback interno para locales `en*`, por lo que los textos visibles del administrador deben mostrarse en inglés incluso si WordPress no carga el archivo `.mo` o `.l10n.php`.
 
 Validar en WordPress:
 
