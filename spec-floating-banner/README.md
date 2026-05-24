@@ -22,7 +22,7 @@ El plugin está pensado para administración interna: el CPT no es público, no 
   - Páginas del banner.
 - Frontend con cierre temporal sin persistencia.
 - Assets separados para admin y frontend.
-- Internacionalización mediante text domain `spec-floating-banner`, traducción inglesa `en_US` y fallback interno para locales `en*`.
+- Internacionalización mediante text domain `spec-floating-banner` y traducción inglesa `en_US`.
 
 ## Capturas
 
@@ -127,8 +127,6 @@ Validar traducciones:
 - Cambiar el idioma de WordPress o del usuario administrador a English (United States).
 - Confirmar que el CPT, metabox, columnas administrativas, buscador, avisos, selector de medios y botón de cierre muestran textos en inglés.
 - Volver a Español y confirmar que los textos originales se mantienen.
-
-Nota: el plugin incluye fallback interno para locales `en*`, por lo que los textos visibles del administrador deben mostrarse en inglés incluso si WordPress no carga el archivo `.mo` o `.l10n.php`.
 
 También se recomienda validar en WordPress:
 
