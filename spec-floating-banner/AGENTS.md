@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-floating-banner.php`.
 - Text domain: `spec-floating-banner`.
 - CPT privado: `sfb_banner`.
-- Versión documentada: 1.9.
+- Versión documentada: 1.13.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: banner flotante por página con cierre temporal.
 
@@ -20,10 +20,17 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - No cambiar el CPT `sfb_banner` sin SPEC completa y plan de migración.
 - No cambiar post meta existentes sin validar compatibilidad:
   - `_sfb_image_id`
+  - `_sfb_media_type`
+  - `_sfb_video_id`
+  - `_sfb_cta_label`
+  - `_sfb_cta_id`
   - `_sfb_link`
   - `_sfb_target`
   - `_sfb_pages`
-- Mantener imagen y enlace obligatorios para publicar.
+- Mantener imagen obligatoria y enlace opcional para publicar banners de imagen.
+- Mantener video MP4/WebM y nombre CTA obligatorios para publicar banners de video.
+- Permitir enlaces opcionales con URL, `#` o anclas como `#formulario`.
+- Mantener ID del CTA opcional y sanitizado para seguimiento con GTM.
 - Mantener target con allowlist `_self` y `_blank`.
 - Mantener bloqueo de páginas asignadas a banners publicados.
 - Mantener assets frontend cargados solo cuando exista banner aplicable.
@@ -69,7 +76,8 @@ node --check assets/js/frontend.js
 Validar manualmente en WordPress si cambia UI o render:
 
 - creación y edición de banners
-- bloqueo de publicación sin imagen o enlace
+- bloqueo de publicación sin imagen en banners de imagen
+- bloqueo de publicación sin video MP4/WebM o nombre CTA en banners de video
 - render en página asignada
 - cierre temporal
 - targets `_self` y `_blank`

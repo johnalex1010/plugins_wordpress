@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SPEC Floating Banner 1.9\n"
+"Project-Id-Version: SPEC Floating Banner 1.13\n"
 "Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
 "POT-Creation-Date: 2026-05-24 00:00+0000\n"
 "PO-Revision-Date: 2026-05-24 00:00+0000\n"
@@ -21,6 +21,18 @@ msgstr "Floating Banners"
 
 msgid "Configuración del Banner"
 msgstr "Banner Settings"
+
+msgid "Tipo de banner"
+msgstr "Banner type"
+
+msgid "Tipo de pieza"
+msgstr "Piece type"
+
+msgid "Imagen"
+msgstr "Image"
+
+msgid "Video"
+msgstr "Video"
 
 msgid "Estado"
 msgstr "Status"
@@ -46,11 +58,23 @@ msgstr "Select image"
 msgid "Seleccionar Imagen"
 msgstr "Select Image"
 
+msgid "Cargar video"
+msgstr "Upload video"
+
+msgid "Seleccionar video"
+msgstr "Select video"
+
 msgid "La imagen es obligatoria para publicar el banner."
 msgstr "An image is required to publish the banner."
 
 msgid "Selecciona una imagen antes de guardar el banner."
 msgstr "Select an image before saving the banner."
+
+msgid "El video es obligatorio para publicar este banner."
+msgstr "A video is required to publish this banner."
+
+msgid "Selecciona un video MP4 o WebM antes de guardar el banner."
+msgstr "Select an MP4 or WebM video before saving the banner."
 
 msgid "Enlace del banner"
 msgstr "Banner link"
@@ -60,6 +84,33 @@ msgstr "https://..."
 
 msgid "El enlace es obligatorio y debe ser una URL válida."
 msgstr "The link is required and must be a valid URL."
+
+msgid "El enlace es opcional. Puede ser una URL válida, # o un ancla como #formulario."
+msgstr "The link is optional. It can be a valid URL, #, or an anchor like #formulario."
+
+msgid "Nombre CTA"
+msgstr "CTA label"
+
+msgid "El nombre del CTA es obligatorio para banners de video."
+msgstr "The CTA label is required for video banners."
+
+msgid "Link CTA"
+msgstr "CTA link"
+
+msgid "El link del CTA es obligatorio y debe ser una URL válida."
+msgstr "The CTA link is required and must be a valid URL."
+
+msgid "El link del CTA es opcional. Puede ser una URL válida, # o un ancla como #formulario."
+msgstr "The CTA link is optional. It can be a valid URL, #, or an anchor like #formulario."
+
+msgid "Target CTA"
+msgstr "CTA target"
+
+msgid "ID del CTA"
+msgstr "CTA ID"
+
+msgid "Opcional. Este ID se puede configurar con GTM para seguimiento de clics."
+msgstr "Optional. This ID can be configured with GTM for click tracking."
 
 msgid "Target del enlace"
 msgstr "Link target"
@@ -96,6 +147,9 @@ msgstr "No pages were found with that criterion."
 
 msgid "El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo."
 msgstr "The banner was saved as a draft because the image and link are required to publish it."
+
+msgid "El banner quedó como borrador porque faltan campos obligatorios para publicarlo."
+msgstr "The banner was saved as a draft because required fields are missing."
 
 msgid "Banner promocional"
 msgstr "Promotional banner"

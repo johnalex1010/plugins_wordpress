@@ -2,8 +2,12 @@
   width: 140px;
 }
 
+.column-sfb_media_type {
+  width: 130px;
+}
+
 .column-sfb_target_pages {
-  width: 32%;
+  width: 28%;
 }
 
 .sfb-status-badge {
@@ -31,6 +35,12 @@
   margin: 1em 0;
 }
 
+.sfb-option {
+  display: inline-flex;
+  gap: 6px;
+  margin: 8px 18px 0 0;
+}
+
 .sfb-field__control {
   margin-top: 6px;
   width: 100%;
@@ -47,6 +57,26 @@
 
 .sfb-preview__image {
   max-width: 200px;
+}
+
+.sfb-preview__video {
+  display: block;
+  max-width: 320px;
+  width: 100%;
+}
+
+.sfb-media-panel,
+[data-sfb-label] {
+  display: none;
+}
+
+.sfb-media-panel.is-active,
+[data-sfb-label].is-active {
+  display: block;
+}
+
+label [data-sfb-label].is-active {
+  display: inline;
 }
 
 .sfb-page-selector__search {

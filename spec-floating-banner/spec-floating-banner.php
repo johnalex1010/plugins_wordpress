@@ -2,8 +2,8 @@
 
 /**
  * Plugin Name: SPEC Floating Banner
- * Description: Gestiona banners flotantes por página con imagen, enlace obligatorio, target configurable, cierre temporal y columnas administrativas de estado/asignación.
- * Version: 1.9
+ * Description: Gestiona banners flotantes por página con imagen o video, CTA, target configurable, cierre temporal y columnas administrativas de estado/asignación.
+ * Version: 1.13
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Text Domain: spec-floating-banner
@@ -36,13 +36,30 @@ function sfb_translate($text)
   $translations = [
     'Configuración del Banner' => 'Banner Settings',
     'ConfiguraciÃ³n del Banner' => 'Banner Settings',
+    'Tipo de banner' => 'Banner type',
+    'Tipo de pieza' => 'Piece type',
+    'Imagen' => 'Image',
+    'Video' => 'Video',
     'Seleccionar Imagen' => 'Select Image',
     'Seleccionar imagen' => 'Select image',
+    'Cargar video' => 'Upload video',
+    'Seleccionar video' => 'Select video',
     'La imagen es obligatoria para publicar el banner.' => 'An image is required to publish the banner.',
     'Selecciona una imagen antes de guardar el banner.' => 'Select an image before saving the banner.',
+    'El video es obligatorio para publicar este banner.' => 'A video is required to publish this banner.',
+    'Selecciona un video MP4 o WebM antes de guardar el banner.' => 'Select an MP4 or WebM video before saving the banner.',
     'Enlace del banner' => 'Banner link',
     'El enlace es obligatorio y debe ser una URL válida.' => 'The link is required and must be a valid URL.',
     'El enlace es obligatorio y debe ser una URL vÃ¡lida.' => 'The link is required and must be a valid URL.',
+    'El enlace es opcional. Puede ser una URL válida, # o un ancla como #formulario.' => 'The link is optional. It can be a valid URL, #, or an anchor like #formulario.',
+    'Nombre CTA' => 'CTA label',
+    'El nombre del CTA es obligatorio para banners de video.' => 'The CTA label is required for video banners.',
+    'Link CTA' => 'CTA link',
+    'El link del CTA es obligatorio y debe ser una URL válida.' => 'The CTA link is required and must be a valid URL.',
+    'El link del CTA es opcional. Puede ser una URL válida, # o un ancla como #formulario.' => 'The CTA link is optional. It can be a valid URL, #, or an anchor like #formulario.',
+    'Target CTA' => 'CTA target',
+    'ID del CTA' => 'CTA ID',
+    'Opcional. Este ID se puede configurar con GTM para seguimiento de clics.' => 'Optional. This ID can be configured with GTM for click tracking.',
     'Target del enlace' => 'Link target',
     'Misma ventana (_self)' => 'Same window (_self)',
     'Nueva ventana (_blank)' => 'New window (_blank)',
@@ -65,6 +82,7 @@ function sfb_translate($text)
     'No se encontraron pÃ¡ginas con ese criterio.' => 'No pages were found with that criterion.',
     'El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo.' => 'The banner was saved as a draft because the image and link are required to publish it.',
     'El banner quedÃ³ como borrador porque la imagen y el enlace son obligatorios para publicarlo.' => 'The banner was saved as a draft because the image and link are required to publish it.',
+    'El banner quedó como borrador porque faltan campos obligatorios para publicarlo.' => 'The banner was saved as a draft because required fields are missing.',
   ];
 
   return isset($translations[$text]) ? $translations[$text] : __($text, 'spec-floating-banner');
@@ -78,6 +96,92 @@ function sfb_esc_html($text)
 function sfb_esc_attr($text)
 {
   return esc_attr(sfb_translate($text));
+}
+
+function sfb_sanitize_media_type($media_type)
+{
+  $media_type = sanitize_key($media_type);
+
+  return in_array($media_type, ['image', 'video'], true) ? $media_type : 'image';
+}
+
+function sfb_get_media_type_label($media_type)
+{
+  $media_type = sfb_sanitize_media_type($media_type);
+
+  return $media_type === 'video' ? sfb_translate('Video') : sfb_translate('Imagen');
+}
+
+function sfb_get_page_hierarchy_label($page_id)
+{
+  $page_id = absint($page_id);
+  $page = get_post($page_id);
+
+  if (!$page || $page->post_type !== 'page') {
+    return '';
+  }
+
+  $ancestor_ids = array_reverse(get_post_ancestors($page_id));
+  $hierarchy_ids = array_merge($ancestor_ids, [$page_id]);
+  $page_titles = [];
+
+  foreach ($hierarchy_ids as $hierarchy_page_id) {
+    $hierarchy_page_id = absint($hierarchy_page_id);
+    $hierarchy_page = get_post($hierarchy_page_id);
+
+    if (!$hierarchy_page || $hierarchy_page->post_type !== 'page') {
+      continue;
+    }
+
+    $page_title = get_the_title($hierarchy_page_id);
+    $page_titles[] = $page_title ? $page_title : sprintf(sfb_translate('Página #%d'), $hierarchy_page_id);
+  }
+
+  return implode(' / ', $page_titles);
+}
+
+function sfb_sanitize_target($target)
+{
+  $target = sanitize_key($target);
+
+  return in_array($target, ['_self', '_blank'], true) ? $target : '_blank';
+}
+
+function sfb_sanitize_link_url($link)
+{
+  $link = trim(sanitize_text_field($link));
+
+  if ($link === '') {
+    return '';
+  }
+
+  if (preg_match('/^#[A-Za-z0-9_\-:.\/?=&%]*$/', $link)) {
+    return $link;
+  }
+
+  return esc_url_raw($link);
+}
+
+function sfb_esc_link_url($link)
+{
+  $link = (string) $link;
+
+  if (strpos($link, '#') === 0) {
+    return esc_attr($link);
+  }
+
+  return esc_url($link);
+}
+
+function sfb_is_valid_video_attachment($video_id)
+{
+  $video_id = absint($video_id);
+
+  if (!$video_id) {
+    return false;
+  }
+
+  return in_array(get_post_mime_type($video_id), ['video/mp4', 'video/webm'], true);
 }
 
 /* =====================================================
@@ -110,6 +214,7 @@ add_filter('manage_sfb_banner_posts_columns', function ($columns) {
     $custom_columns[$key] = $label;
 
     if ($key === 'title') {
+      $custom_columns['sfb_media_type'] = __('Tipo de pieza', 'spec-floating-banner');
       $custom_columns['sfb_publication_status'] = __('Estado', 'spec-floating-banner');
       $custom_columns['sfb_target_pages'] = __('Páginas del banner', 'spec-floating-banner');
     }
@@ -119,6 +224,11 @@ add_filter('manage_sfb_banner_posts_columns', function ($columns) {
 });
 
 add_action('manage_sfb_banner_posts_custom_column', function ($column, $post_id) {
+  if ($column === 'sfb_media_type') {
+    echo esc_html(sfb_get_media_type_label(get_post_meta($post_id, '_sfb_media_type', true)));
+    return;
+  }
+
   if ($column === 'sfb_publication_status') {
     $is_published = get_post_status($post_id) === 'publish';
     $status_class = $is_published ? 'sfb-status-badge--published' : 'sfb-status-badge--unpublished';
@@ -145,7 +255,7 @@ add_action('manage_sfb_banner_posts_custom_column', function ($column, $post_id)
         continue;
       }
 
-      $page_title = get_the_title($page_id);
+      $page_title = sfb_get_page_hierarchy_label($page_id);
       $page_title = $page_title ? $page_title : sprintf(__('Página #%d', 'spec-floating-banner'), $page_id);
       $edit_link = get_edit_post_link($page_id);
 
@@ -169,7 +279,7 @@ function sfb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '1.9';
+  return file_exists($file) ? (string) filemtime($file) : '1.13';
 }
 
 function sfb_get_current_page_banners()
@@ -262,18 +372,23 @@ add_action('admin_enqueue_scripts', function ($hook) {
 
   wp_localize_script('sfb-admin', 'SFB_ADMIN_I18N', [
     'mediaTitle' => sfb_translate('Seleccionar imagen'),
+    'videoTitle' => sfb_translate('Seleccionar video'),
   ]);
 });
 
 function sfb_render_metabox($post)
 {
+  $media_type = sfb_sanitize_media_type(get_post_meta($post->ID, '_sfb_media_type', true));
   $image_id = absint(get_post_meta($post->ID, '_sfb_image_id', true));
+  $video_id = absint(get_post_meta($post->ID, '_sfb_video_id', true));
+  $cta_label = get_post_meta($post->ID, '_sfb_cta_label', true);
+  $cta_id = get_post_meta($post->ID, '_sfb_cta_id', true);
   $link = get_post_meta($post->ID, '_sfb_link', true);
-  $target = get_post_meta($post->ID, '_sfb_target', true);
-  $target = in_array($target, ['_self', '_blank'], true) ? $target : '_blank';
+  $target = sfb_sanitize_target(get_post_meta($post->ID, '_sfb_target', true));
   $selected_pages = array_map('absint', (array) get_post_meta($post->ID, '_sfb_pages', true));
 
   $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
+  $video_url = $video_id ? wp_get_attachment_url($video_id) : '';
 
   $args = [
     'post_type' => 'sfb_banner',
@@ -317,7 +432,7 @@ function sfb_render_metabox($post)
         continue;
       }
 
-      $active_page_title = get_the_title($active_page_id);
+      $active_page_title = sfb_get_page_hierarchy_label($active_page_id);
       $active_page_titles[] = $active_page_title ? $active_page_title : sprintf(__('Página #%d', 'spec-floating-banner'), $active_page_id);
     }
 
@@ -327,6 +442,7 @@ function sfb_render_metabox($post)
 
     $active_banner_rows[] = [
       'title' => get_the_title($active_banner_id),
+      'media_type' => sfb_get_media_type_label(get_post_meta($active_banner_id, '_sfb_media_type', true)),
       'pages' => $active_page_titles
     ];
   }
@@ -335,25 +451,65 @@ function sfb_render_metabox($post)
 ?>
 
   <div>
-    <button type="button" class="button" id="sfb_upload_btn"><?php echo sfb_esc_html('Seleccionar Imagen'); ?></button>
-    <input type="hidden" name="sfb_image_id" id="sfb_image_id" value="<?php echo esc_attr($image_id); ?>">
-    <p class="description"><?php echo sfb_esc_html('La imagen es obligatoria para publicar el banner.'); ?></p>
-    <div id="sfb_required_notice" class="notice notice-error sfb-required-notice">
-      <p><?php echo sfb_esc_html('Selecciona una imagen antes de guardar el banner.'); ?></p>
+    <fieldset class="sfb-field">
+      <legend><strong><?php echo sfb_esc_html('Tipo de banner'); ?></strong></legend>
+      <label class="sfb-option">
+        <input type="radio" name="sfb_media_type" value="image" <?php checked($media_type, 'image'); ?>>
+        <span><?php echo sfb_esc_html('Imagen'); ?></span>
+      </label>
+      <label class="sfb-option">
+        <input type="radio" name="sfb_media_type" value="video" <?php checked($media_type, 'video'); ?>>
+        <span><?php echo sfb_esc_html('Video'); ?></span>
+      </label>
+    </fieldset>
+
+    <div class="sfb-media-panel" data-sfb-media-panel="image">
+      <button type="button" class="button" id="sfb_upload_btn"><?php echo sfb_esc_html('Seleccionar Imagen'); ?></button>
+      <input type="hidden" name="sfb_image_id" id="sfb_image_id" value="<?php echo esc_attr($image_id); ?>">
+      <p class="description"><?php echo sfb_esc_html('La imagen es obligatoria para publicar el banner.'); ?></p>
+      <div id="sfb_image_required_notice" class="notice notice-error sfb-required-notice">
+        <p><?php echo sfb_esc_html('Selecciona una imagen antes de guardar el banner.'); ?></p>
+      </div>
+
+      <div class="sfb-preview">
+        <img id="sfb_preview" class="sfb-preview__image" src="<?php echo esc_url($image_url); ?>" alt="">
+      </div>
     </div>
 
-    <div class="sfb-preview">
-      <img id="sfb_preview" class="sfb-preview__image" src="<?php echo esc_url($image_url); ?>" alt="">
+    <div class="sfb-media-panel" data-sfb-media-panel="video">
+      <button type="button" class="button" id="sfb_video_upload_btn"><?php echo sfb_esc_html('Cargar video'); ?></button>
+      <input type="hidden" name="sfb_video_id" id="sfb_video_id" value="<?php echo esc_attr($video_id); ?>">
+      <p class="description"><?php echo sfb_esc_html('El video es obligatorio para publicar este banner.'); ?></p>
+      <div id="sfb_video_required_notice" class="notice notice-error sfb-required-notice">
+        <p><?php echo sfb_esc_html('Selecciona un video MP4 o WebM antes de guardar el banner.'); ?></p>
+      </div>
+
+      <div class="sfb-preview">
+        <video id="sfb_video_preview" class="sfb-preview__video" src="<?php echo esc_url($video_url); ?>" controls></video>
+      </div>
+
+      <p class="sfb-field">
+        <label for="sfb_cta_label"><strong><?php echo sfb_esc_html('Nombre CTA'); ?></strong></label>
+        <input type="text" name="sfb_cta_label" id="sfb_cta_label" class="sfb-field__control" value="<?php echo esc_attr($cta_label); ?>">
+        <span class="description"><?php echo sfb_esc_html('El nombre del CTA es obligatorio para banners de video.'); ?></span>
+      </p>
+
+      <p class="sfb-field">
+        <label for="sfb_cta_id"><strong><?php echo sfb_esc_html('ID del CTA'); ?></strong></label>
+        <input type="text" name="sfb_cta_id" id="sfb_cta_id" class="sfb-field__control" value="<?php echo esc_attr($cta_id); ?>">
+        <span class="description"><?php echo sfb_esc_html('Opcional. Este ID se puede configurar con GTM para seguimiento de clics.'); ?></span>
+      </p>
     </div>
 
     <p class="sfb-field">
-      <label for="sfb_link"><strong><?php echo sfb_esc_html('Enlace del banner'); ?></strong></label>
-      <input type="url" name="sfb_link" id="sfb_link" class="sfb-field__control" placeholder="<?php echo sfb_esc_attr('https://...'); ?>" value="<?php echo esc_attr($link); ?>" required>
-      <span class="description"><?php echo sfb_esc_html('El enlace es obligatorio y debe ser una URL válida.'); ?></span>
+      <label for="sfb_link"><strong><span data-sfb-label="image"><?php echo sfb_esc_html('Enlace del banner'); ?></span><span data-sfb-label="video"><?php echo sfb_esc_html('Link CTA'); ?></span></strong></label>
+      <input type="text" name="sfb_link" id="sfb_link" class="sfb-field__control" placeholder="<?php echo sfb_esc_attr('https://...'); ?>" value="<?php echo esc_attr($link); ?>">
+      <span class="description" data-sfb-label="image"><?php echo sfb_esc_html('El enlace es opcional. Puede ser una URL válida, # o un ancla como #formulario.'); ?></span>
+      <span class="description" data-sfb-label="video"><?php echo sfb_esc_html('El link del CTA es opcional. Puede ser una URL válida, # o un ancla como #formulario.'); ?></span>
     </p>
 
     <p class="sfb-field">
-      <label for="sfb_target"><strong><?php echo sfb_esc_html('Target del enlace'); ?></strong></label>
+      <label for="sfb_target"><strong><span data-sfb-label="image"><?php echo sfb_esc_html('Target del enlace'); ?></span><span data-sfb-label="video"><?php echo sfb_esc_html('Target CTA'); ?></span></strong></label>
       <select name="sfb_target" id="sfb_target" class="sfb-field__select">
         <option value="_self" <?php selected($target, '_self'); ?>><?php echo sfb_esc_html('Misma ventana (_self)'); ?></option>
         <option value="_blank" <?php selected($target, '_blank'); ?>><?php echo sfb_esc_html('Nueva ventana (_blank)'); ?></option>
@@ -365,6 +521,7 @@ function sfb_render_metabox($post)
       <thead>
         <tr>
           <th scope="col"><?php echo sfb_esc_html('Banner flotante'); ?></th>
+          <th scope="col"><?php echo sfb_esc_html('Tipo de pieza'); ?></th>
           <th scope="col"><?php echo sfb_esc_html('Páginas'); ?></th>
         </tr>
       </thead>
@@ -373,12 +530,13 @@ function sfb_render_metabox($post)
           <?php foreach ($active_banner_rows as $active_banner_row) : ?>
             <tr>
               <td><?php echo esc_html($active_banner_row['title']); ?></td>
+              <td><?php echo esc_html($active_banner_row['media_type']); ?></td>
               <td><?php echo esc_html(implode(', ', $active_banner_row['pages'])); ?></td>
             </tr>
           <?php endforeach; ?>
         <?php else : ?>
           <tr>
-            <td colspan="2"><?php echo sfb_esc_html('No hay banners flotantes activos con páginas asignadas.'); ?></td>
+            <td colspan="3"><?php echo sfb_esc_html('No hay banners flotantes activos con páginas asignadas.'); ?></td>
           </tr>
         <?php endif; ?>
       </tbody>
@@ -395,7 +553,7 @@ function sfb_render_metabox($post)
 
         foreach ($pages as $page) {
           $page_id = absint($page->ID);
-          $page_title = get_the_title($page_id);
+          $page_title = sfb_get_page_hierarchy_label($page_id);
           $page_title = $page_title ? $page_title : sprintf(sfb_translate('Página #%d'), $page_id);
           $disabled = in_array($page_id, $used_pages, true) ? 'disabled' : '';
           $checked = in_array($page_id, $selected_pages, true) ? 'checked' : '';
@@ -426,18 +584,38 @@ add_action('save_post', function ($post_id) {
   if (!current_user_can('edit_post', $post_id)) return;
   if (!isset($_POST['sfb_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['sfb_nonce'])), 'sfb_save_banner')) return;
 
+  if (isset($_POST['sfb_media_type'])) {
+    update_post_meta($post_id, '_sfb_media_type', sfb_sanitize_media_type(wp_unslash($_POST['sfb_media_type'])));
+  }
+
   if (isset($_POST['sfb_image_id'])) {
     update_post_meta($post_id, '_sfb_image_id', absint(wp_unslash($_POST['sfb_image_id'])));
   }
 
+  if (isset($_POST['sfb_video_id'])) {
+    $video_id = absint(wp_unslash($_POST['sfb_video_id']));
+
+    if (sfb_is_valid_video_attachment($video_id)) {
+      update_post_meta($post_id, '_sfb_video_id', $video_id);
+    } else {
+      delete_post_meta($post_id, '_sfb_video_id');
+    }
+  }
+
+  if (isset($_POST['sfb_cta_label'])) {
+    update_post_meta($post_id, '_sfb_cta_label', sanitize_text_field(wp_unslash($_POST['sfb_cta_label'])));
+  }
+
+  if (isset($_POST['sfb_cta_id'])) {
+    update_post_meta($post_id, '_sfb_cta_id', sanitize_html_class(wp_unslash($_POST['sfb_cta_id'])));
+  }
+
   if (isset($_POST['sfb_link'])) {
-    update_post_meta($post_id, '_sfb_link', esc_url_raw(wp_unslash($_POST['sfb_link'])));
+    update_post_meta($post_id, '_sfb_link', sfb_sanitize_link_url(wp_unslash($_POST['sfb_link'])));
   }
 
   if (isset($_POST['sfb_target'])) {
-    $target = sanitize_key(wp_unslash($_POST['sfb_target']));
-    $target = in_array($target, ['_self', '_blank'], true) ? $target : '_blank';
-    update_post_meta($post_id, '_sfb_target', $target);
+    update_post_meta($post_id, '_sfb_target', sfb_sanitize_target(wp_unslash($_POST['sfb_target'])));
   }
 
   if (isset($_POST['sfb_pages'])) {
@@ -462,20 +640,38 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
   }
 
   $post_id = !empty($postarr['ID']) ? absint($postarr['ID']) : 0;
+  $media_type = $post_id ? sfb_sanitize_media_type(get_post_meta($post_id, '_sfb_media_type', true)) : 'image';
   $image_id = $post_id ? absint(get_post_meta($post_id, '_sfb_image_id', true)) : 0;
-  $link = $post_id ? esc_url_raw(get_post_meta($post_id, '_sfb_link', true)) : '';
+  $video_id = $post_id ? absint(get_post_meta($post_id, '_sfb_video_id', true)) : 0;
+  $cta_label = $post_id ? sanitize_text_field(get_post_meta($post_id, '_sfb_cta_label', true)) : '';
+  $link = $post_id ? sfb_sanitize_link_url(get_post_meta($post_id, '_sfb_link', true)) : '';
+
+  if (isset($_POST['sfb_media_type'])) {
+    $media_type = sfb_sanitize_media_type(wp_unslash($_POST['sfb_media_type']));
+  }
 
   if (isset($_POST['sfb_image_id'])) {
     $image_id = absint(wp_unslash($_POST['sfb_image_id']));
   }
 
+  if (isset($_POST['sfb_video_id'])) {
+    $video_id = absint(wp_unslash($_POST['sfb_video_id']));
+  }
+
+  if (isset($_POST['sfb_cta_label'])) {
+    $cta_label = sanitize_text_field(wp_unslash($_POST['sfb_cta_label']));
+  }
+
   if (isset($_POST['sfb_link'])) {
-    $link = esc_url_raw(wp_unslash($_POST['sfb_link']));
+    $link = sfb_sanitize_link_url(wp_unslash($_POST['sfb_link']));
   }
 
   $requires_publication = in_array($data['post_status'], ['publish', 'future'], true);
+  $missing_required_fields = $media_type === 'video'
+    ? (!$video_id || !sfb_is_valid_video_attachment($video_id) || !$cta_label)
+    : (!$image_id);
 
-  if ($requires_publication && (!$image_id || !$link)) {
+  if ($requires_publication && $missing_required_fields) {
     $data['post_status'] = 'draft';
 
     if (is_admin()) {
@@ -496,9 +692,9 @@ add_action('admin_notices', function () {
   delete_transient($notice_key);
 ?>
   <div class="notice notice-error is-dismissible">
-    <p><?php echo sfb_esc_html('El banner quedó como borrador porque la imagen y el enlace son obligatorios para publicarlo.'); ?></p>
+    <p><?php echo sfb_esc_html('El banner quedó como borrador porque faltan campos obligatorios para publicarlo.'); ?></p>
   </div>
-<?php
+  <?php
 });
 
 /* =====================================================
@@ -513,18 +709,52 @@ add_action('wp_footer', function () {
   $rendered_banner = false;
 
   foreach ($banners as $banner_id) {
+    $media_type = sfb_sanitize_media_type(get_post_meta($banner_id, '_sfb_media_type', true));
     $image_id = absint(get_post_meta($banner_id, '_sfb_image_id', true));
-    $link = get_post_meta($banner_id, '_sfb_link', true);
-    $link_url = esc_url($link);
-    $target = get_post_meta($banner_id, '_sfb_target', true);
-    $target = in_array($target, ['_self', '_blank'], true) ? $target : '_blank';
+    $video_id = absint(get_post_meta($banner_id, '_sfb_video_id', true));
+    $cta_label = get_post_meta($banner_id, '_sfb_cta_label', true);
+    $cta_id = sanitize_html_class(get_post_meta($banner_id, '_sfb_cta_id', true));
+    $link_url = sfb_sanitize_link_url(get_post_meta($banner_id, '_sfb_link', true));
+    $target = sfb_sanitize_target(get_post_meta($banner_id, '_sfb_target', true));
     $link_rel = $target === '_blank' ? 'noopener noreferrer' : '';
-
-    if (!$image_id || !$link_url) continue;
 
     $banner_id = absint($banner_id);
     $banner_title = get_the_title($banner_id);
     $banner_label = $banner_title ? $banner_title : __('Banner promocional', 'spec-floating-banner');
+
+    if ($media_type === 'video') {
+      if (!sfb_is_valid_video_attachment($video_id) || !$cta_label) continue;
+
+      $video_url = wp_get_attachment_url($video_id);
+
+      if (!$video_url) continue;
+
+      $rendered_banner = true;
+  ?>
+      <aside id="sfb-banner-<?php echo esc_attr($banner_id); ?>" class="sfb-floating-banner sfb-floating-banner--video" role="complementary" aria-label="<?php echo esc_attr($banner_label); ?>">
+
+        <div class="sfb-floating-banner__inner">
+
+          <button type="button" class="sfb-floating-banner__close" data-sfb-banner-id="<?php echo esc_attr($banner_id); ?>" aria-label="<?php echo esc_attr__('Cerrar banner', 'spec-floating-banner'); ?>">&times;</button>
+
+          <video class="sfb-floating-banner__video" controls playsinline preload="metadata">
+            <source src="<?php echo esc_url($video_url); ?>" type="<?php echo esc_attr(get_post_mime_type($video_id)); ?>">
+          </video>
+
+          <?php if ($link_url) : ?>
+          <a class="sfb-floating-banner__cta" href="<?php echo sfb_esc_link_url($link_url); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?><?php echo $cta_id ? ' id="' . esc_attr($cta_id) . '"' : ''; ?>>
+            <?php echo esc_html($cta_label); ?>
+          </a>
+          <?php endif; ?>
+
+        </div>
+      </aside>
+    <?php
+      continue;
+    }
+
+    if (!$image_id) continue;
+
     $image_alt = get_post_meta($image_id, '_wp_attachment_image_alt', true);
     $image_alt = $image_alt ? $image_alt : get_the_title($image_id);
     $image_alt = $image_alt ? $image_alt : $banner_label;
@@ -538,22 +768,25 @@ add_action('wp_footer', function () {
     if (!$image_markup) continue;
 
     $rendered_banner = true;
-?>
-        <aside id="sfb-banner-<?php echo esc_attr($banner_id); ?>" class="sfb-floating-banner" role="complementary" aria-label="<?php echo esc_attr($banner_label); ?>">
+    ?>
+    <aside id="sfb-banner-<?php echo esc_attr($banner_id); ?>" class="sfb-floating-banner" role="complementary" aria-label="<?php echo esc_attr($banner_label); ?>">
 
-            <div class="sfb-floating-banner__inner">
+      <div class="sfb-floating-banner__inner">
 
-                <button type="button" class="sfb-floating-banner__close" data-sfb-banner-id="<?php echo esc_attr($banner_id); ?>" aria-label="<?php echo esc_attr__('Cerrar banner', 'spec-floating-banner'); ?>">&times;</button>
+        <button type="button" class="sfb-floating-banner__close" data-sfb-banner-id="<?php echo esc_attr($banner_id); ?>" aria-label="<?php echo esc_attr__('Cerrar banner', 'spec-floating-banner'); ?>">&times;</button>
 
-                    <a href="<?php echo esc_url($link_url); ?>" target="<?php echo esc_attr($target); ?>"<?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?>>
-                        <?php echo wp_kses_post($image_markup); ?>
-                    </a>
+        <?php if ($link_url) : ?>
+        <a href="<?php echo sfb_esc_link_url($link_url); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?>>
+          <?php echo wp_kses_post($image_markup); ?>
+        </a>
+        <?php else : ?>
+          <?php echo wp_kses_post($image_markup); ?>
+        <?php endif; ?>
 
-            </div>
-        </aside>
+      </div>
+    </aside>
 <?php
   }
 
   if (!$rendered_banner) return;
-
 });

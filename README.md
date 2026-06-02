@@ -27,11 +27,11 @@ Evitar código difícil de entender: nombres ambiguos, funciones enormes, duplic
 
 ## Plugins incluidos
 
-| Plugin | Carpeta | Versión | Propósito |
-| --- | --- | --- | --- |
-| SPEC Header Banner | `spec-header-banner` | 4.4 | Banners full width por página, ubicados bajo breadcrumbs si existen o bajo el header como fallback. |
-| SPEC Floating Banner | `spec-floating-banner` | 1.9 | Banners flotantes por página, con imagen, enlace, target y cierre temporal. |
-| SPEC Modal Pro | `spec-modal-checklist` | 3.3 | Modales promocionales por página y rol, con imagen clickeable, frecuencia y estado activo/inactivo. |
+| Plugin               | Carpeta                | Versión | Propósito                                                                                           |
+| -------------------- | ---------------------- | ------- | --------------------------------------------------------------------------------------------------- |
+| SPEC Header Banner   | `spec-header-banner`   | 4.4     | Banners full width por página, ubicados bajo breadcrumbs si existen o bajo el header como fallback. |
+| SPEC Floating Banner | `spec-floating-banner` | 1.13    | Banners flotantes por página, con imagen o video, CTA, target y cierre temporal.                    |
+| SPEC Modal Pro       | `spec-modal-checklist` | 3.3     | Modales promocionales por página y rol, con imagen clickeable, frecuencia y estado activo/inactivo. |
 
 ## SPEC Header Banner
 
@@ -57,7 +57,11 @@ Plugin para crear banners flotantes por página. Se muestra como un banner fijo 
 Características principales:
 
 - CPT privado `sfb_banner`.
-- Imagen y enlace obligatorios para publicar.
+- Tipo de banner configurable: imagen o video.
+- Imagen obligatoria y enlace opcional para banners de imagen.
+- Video MP4/WebM y nombre CTA obligatorios para banners de video.
+- Enlaces opcionales con soporte para URL, `#` o anclas como `#formulario`.
+- ID opcional del CTA para seguimiento de clics con GTM.
 - Target `_self` o `_blank`.
 - Checklist de páginas con buscador.
 - Bloqueo de páginas usadas por otros banners publicados.

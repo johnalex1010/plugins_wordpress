@@ -4,21 +4,28 @@ Plugin WordPress para gestionar banners flotantes por página desde un Custom Po
 
 ## Descripción
 
-SPEC Floating Banner permite crear banners flotantes que se muestran en páginas específicas del sitio. Cada banner requiere una imagen y un enlace, permite definir el target del enlace (`_self` o `_blank`) y se renderiza como un elemento flotante inferior izquierdo con botón de cierre temporal.
+SPEC Floating Banner permite crear banners flotantes que se muestran en páginas específicas del sitio. Cada banner puede configurarse como imagen con enlace opcional o como video con CTA configurable, permite definir el target del enlace (`_self` o `_blank`) y se renderiza como un elemento flotante inferior izquierdo con botón de cierre temporal.
 
 El plugin está pensado para administración interna: el CPT no es público, no genera URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
 
 ## Funcionalidades
 
 - CPT privado `sfb_banner` para administrar banners.
+- Selector de tipo de banner: imagen o video.
 - Selector de imagen usando la librería de medios de WordPress.
-- Link obligatorio con sanitización de URL.
+- Selector de video usando la librería de medios de WordPress.
+- Validación de videos permitidos: MP4 y WebM.
+- Link opcional con sanitización para URL, `#` o anclas internas como `#formulario`.
+- CTA para banners de video: nombre obligatorio, link opcional y target configurable.
+- ID opcional del CTA para configurar seguimiento de clics con GTM.
 - Target configurable: misma ventana o nueva ventana.
 - Selección de páginas donde se mostrará cada banner.
-- Prevención de publicación si falta imagen o enlace.
+- Selector de páginas con ruta jerárquica cuando la página tiene padre.
+- Prevención de publicación si faltan los campos obligatorios según el tipo de banner.
 - Tabla informativa de banners flotantes activos y páginas asignadas.
 - Columnas administrativas:
   - Estado: `Publicado` / `No publicado`.
+  - Tipo de pieza: `Imagen` / `Video`.
   - Páginas del banner.
 - Frontend con cierre temporal sin persistencia.
 - Assets separados para admin y frontend.
@@ -74,7 +81,9 @@ El plugin aplica medidas estándar de seguridad WordPress:
 - Nonce para guardado desde el admin.
 - Sanitización de entradas:
   - `absint()` para IDs.
-  - `esc_url_raw()` para enlaces.
+  - Sanitización propia para enlaces con URL, `#` o anclas internas.
+  - `sanitize_text_field()` para nombre del CTA.
+  - `sanitize_html_class()` para ID opcional del CTA.
   - `sanitize_key()` y allowlist para target.
 - Escape de salidas:
   - `esc_html()`.
@@ -100,8 +109,9 @@ Este plugin debe mantenerse fácil de leer, mantener y extender:
 
 - No crea páginas públicas nuevas.
 - No modifica canonicales, metadescripciones, schema ni datos de Yoast SEO.
-- El banner usa imagen de WordPress mediante `wp_get_attachment_image()`, conservando atributos responsivos cuando estén disponibles.
+- El banner de imagen usa `wp_get_attachment_image()`, conservando atributos responsivos cuando estén disponibles.
 - La imagen incluye `alt` con fallback al título del adjunto o del banner.
+- El banner de video renderiza el archivo seleccionado con controles nativos y un CTA visible debajo.
 - El contenedor frontend usa `aside` con `role="complementary"` y `aria-label`.
 
 ## Performance
@@ -116,13 +126,14 @@ Este plugin debe mantenerse fácil de leer, mantener y extender:
 1. Ir al administrador de WordPress.
 2. Abrir `Floating Banners`.
 3. Crear o editar un banner.
-4. Seleccionar una imagen.
-5. Agregar un enlace válido.
-6. Elegir el target del enlace.
-7. Seleccionar las páginas donde debe mostrarse.
-8. Publicar.
+4. Elegir el tipo de banner.
+5. Si es imagen, seleccionar una imagen y opcionalmente agregar un enlace válido, `#` o un ancla como `#formulario`.
+6. Si es video, cargar un video MP4 o WebM, agregar nombre CTA y opcionalmente link CTA con URL, `#` o un ancla como `#formulario`.
+7. Opcionalmente agregar un ID al CTA para seguimiento de clics con GTM.
+8. Seleccionar las páginas donde debe mostrarse.
+9. Publicar.
 
-Si falta imagen o enlace, el banner no podrá quedar publicado y pasará a borrador.
+Si faltan campos obligatorios según el tipo seleccionado, el banner no podrá quedar publicado y pasará a borrador.
 
 ## Validación recomendada
 
@@ -143,8 +154,13 @@ Validar traducciones:
 También se recomienda validar en WordPress:
 
 - Creación y edición de banner.
-- Publicación bloqueada sin imagen o enlace.
+- Selector de páginas mostrando jerarquía padre/hija.
+- Columna de tipo de pieza en listado del CPT y tabla de banners activos.
+- Publicación bloqueada sin imagen en banners de imagen.
+- Publicación bloqueada sin video MP4/WebM o nombre CTA en banners de video.
+- Enlaces opcionales con URL, `#` y anclas como `#formulario`.
 - Render frontend en una página asignada.
+- Render frontend de video con CTA visible debajo.
 - Cierre temporal del banner.
 - Target `_self` y `_blank`.
 - Ausencia de errores visibles en consola.
@@ -162,6 +178,10 @@ Para revertir una versión problemática:
 No hay migraciones de base de datos. El plugin usa post meta estándar de WordPress:
 
 - `_sfb_image_id`
+- `_sfb_media_type`
+- `_sfb_video_id`
+- `_sfb_cta_label`
+- `_sfb_cta_id`
 - `_sfb_link`
 - `_sfb_target`
 - `_sfb_pages`
