@@ -26,15 +26,15 @@ El plugin está pensado para administración interna: el CPT no es público, no 
 
 ## Capturas
 
-Sube las imagenes de referencia en `docs/images/` usando estos nombres para que se muestren aqui automaticamente.
+Sube las imágenes de referencia en `docs/images/` usando estos nombres para que se muestren aquí automáticamente.
 
 ### Listado en administrador
 
 ![Listado de banners flotantes](docs/images/admin-list.png)
 
-### Configuracion del banner flotante
+### Configuración del banner flotante
 
-![Configuracion del banner flotante](docs/images/admin-config.png)
+![Configuración del banner flotante](docs/images/admin-config.png)
 
 ### Vista en frontend
 
@@ -83,6 +83,18 @@ El plugin aplica medidas estándar de seguridad WordPress:
   - `wp_kses_post()` para markup controlado de imágenes.
 - `rel="noopener noreferrer"` cuando el enlace abre en `_blank`.
 - Validación de que las páginas asignadas sean realmente posts tipo `page`.
+
+## Código limpio y mantenibilidad
+
+Este plugin debe mantenerse fácil de leer, mantener y extender:
+
+- Funciones `sfb_` pequeñas y enfocadas en una sola responsabilidad.
+- Nombres descriptivos para imagen, enlace, target, páginas y banners.
+- Validaciones explícitas para URL, target, IDs y páginas asignadas.
+- JS encapsulado, sin variables globales innecesarias, listeners duplicados ni `console.log`.
+- CSS separado entre admin y frontend, con selectores acotados al plugin.
+- Comentarios solo cuando expliquen una decisión que no sea evidente en el código.
+- Reutilización de helpers existentes antes de duplicar lógica.
 
 ## SEO / GEO / AEO
 

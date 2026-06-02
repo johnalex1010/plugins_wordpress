@@ -1,6 +1,29 @@
 # Plugins WordPress - UNIMINUTO Virtual
 
+## Gobernanza para agentes
+
+Antes de modificar este repositorio, cualquier agente de IA o asistente automatizado debe leer y obedecer `AGENTS.md` en la raíz y, si existe, el `AGENTS.md` local del plugin afectado.
+
+El flujo obligatorio es SPEC previa proporcional al cambio, validación técnica, revisión de seguridad, SEO / GEO / AEO, accesibilidad, performance y documentación de rollback. Los archivos de traducción y los binarios generados, como `.mo`, deben tratarse con especial cuidado y no editarse manualmente.
+
 Repositorio local de plugins personalizados para WordPress. Los plugins incluidos permiten administrar banners y modales promocionales desde el panel de WordPress, con segmentación por páginas y controles de seguridad básicos.
+
+## Estándar de código limpio
+
+El proyecto adopta como principio que el código escrito hoy debe poder mantenerse con facilidad por otra persona en el futuro. Todo cambio debe favorecer claridad, bajo acoplamiento y mantenibilidad.
+
+Buenas prácticas obligatorias:
+
+- Nombres descriptivos para variables, funciones, helpers, metadatos y archivos.
+- Funciones pequeñas con una sola responsabilidad.
+- Lógica clara, formateada y consistente con el estilo existente.
+- Comentarios solo cuando aporten contexto real.
+- Manejo de errores y estados vacíos de forma explícita.
+- Reutilización prudente de helpers existentes antes de duplicar lógica.
+- Estructura de carpetas coherente entre PHP, CSS, JS, traducciones y documentación.
+- Código sin `console.log`, debugging, mocks accidentales, secretos ni fragmentos temporales.
+
+Evitar código difícil de entender: nombres ambiguos, funciones enormes, duplicación innecesaria, anidamientos profundos, validaciones implícitas, comentarios redundantes y archivos desordenados.
 
 ## Plugins incluidos
 

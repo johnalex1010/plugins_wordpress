@@ -22,15 +22,15 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 
 ## Capturas
 
-Sube las imagenes de referencia en `docs/images/` usando estos nombres para que se muestren aqui automaticamente.
+Sube las imágenes de referencia en `docs/images/` usando estos nombres para que se muestren aquí automáticamente.
 
 ### Listado en administrador
 
 ![Listado de modales](docs/images/admin-list.png)
 
-### Configuracion del modal
+### Configuración del modal
 
-![Configuracion del modal](docs/images/admin-config.png)
+![Configuración del modal](docs/images/admin-config.png)
 
 ### Vista en frontend
 
@@ -46,6 +46,18 @@ Sube las imagenes de referencia en `docs/images/` usando estos nombres para que 
 - Validación de páginas tipo `page`.
 - Escape de salida con `esc_html()`, `esc_attr()`, `esc_url()` y `wp_kses_post()`.
 - `rel="noopener noreferrer"` cuando el enlace abre en nueva pestaña.
+
+## Código limpio y mantenibilidad
+
+Este plugin debe mantenerse legible, modular y escalable:
+
+- Funciones `smp_` pequeñas y enfocadas en una sola responsabilidad.
+- Nombres descriptivos para estado, delay, frecuencia, páginas, roles, CTA, imagen y target.
+- Lógica de segmentación, frecuencia y cierre expresada de forma clara y verificable.
+- Validaciones explícitas para roles, páginas, frecuencia, target, URLs e IDs.
+- JS encapsulado, sin variables globales innecesarias, listeners duplicados ni `console.log`.
+- CSS del modal acotado al namespace del plugin para reducir conflictos visuales.
+- Comentarios solo cuando expliquen decisiones de accesibilidad, compatibilidad o persistencia.
 
 ## SEO / GEO / AEO
 

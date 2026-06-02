@@ -28,15 +28,15 @@ Para evitar conflictos visuales, una página asignada a un banner publicado qued
 
 ## Capturas
 
-Sube las imagenes de referencia en `docs/images/` usando estos nombres para que se muestren aqui automaticamente.
+Sube las imágenes de referencia en `docs/images/` usando estos nombres para que se muestren aquí automáticamente.
 
 ### Listado en administrador
 
 ![Listado de banners de encabezado](docs/images/admin-list.png)
 
-### Configuracion del banner
+### Configuración del banner
 
-![Configuracion del banner de encabezado](docs/images/admin-config.png)
+![Configuración del banner de encabezado](docs/images/admin-config.png)
 
 ### Vista en frontend
 
@@ -53,6 +53,18 @@ Sube las imagenes de referencia en `docs/images/` usando estos nombres para que 
 - Escape de salida con `esc_html()`, `esc_attr()`, `esc_url()` y `wp_kses_post()`.
 - `rel="noopener noreferrer"` cuando el enlace abre en nueva ventana.
 - Sin CSS/JS inline.
+
+## Código limpio y mantenibilidad
+
+Este plugin debe mantenerse claro, modular y seguro de extender:
+
+- Funciones `shb_` pequeñas y separadas por responsabilidad.
+- Nombres descriptivos para imagen, enlace, target, páginas, breadcrumbs y fallback.
+- Lógica de ubicación bajo breadcrumbs/header legible y documentada cuando cambie.
+- Validaciones explícitas para IDs, URL, target y páginas asignadas.
+- JS encapsulado, sin variables globales innecesarias, listeners duplicados ni `console.log`.
+- CSS separado entre admin y frontend, sin efectos laterales sobre el tema.
+- Comentarios solo cuando aporten contexto útil sobre compatibilidad o decisiones técnicas.
 
 ## SEO / GEO / AEO
 
