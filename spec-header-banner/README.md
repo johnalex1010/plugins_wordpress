@@ -15,7 +15,7 @@ Para evitar conflictos visuales, una página asignada a un banner publicado qued
 - Imagen obligatoria.
 - Enlace opcional.
 - Target `_self` o `_blank`.
-- Checklist de páginas con buscador.
+- Checklist de páginas con buscador y ruta jerárquica padre/hija.
 - Bloqueo de páginas ya usadas por otros banners publicados.
 - Tabla informativa de banners activos y páginas asignadas.
 - Columnas administrativas:
@@ -116,6 +116,7 @@ Validar en WordPress:
 
 - Crear dos banners.
 - Asignar páginas al primero.
+- Confirmar que el selector muestra jerarquía de páginas cuando existen padres.
 - Confirmar que esas páginas quedan bloqueadas en el segundo.
 - Publicar un banner con imagen.
 - Confirmar que aparece full width bajo breadcrumbs si existen.

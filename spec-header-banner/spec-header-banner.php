@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Header Banner
  * Description: Gestiona múltiples banners full width por página y los ubica bajo breadcrumbs si existen o bajo el header como fallback, con imagen obligatoria, enlace opcional, target configurable y administración con buscador.
- * Version: 4.4
+ * Version: 4.5
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -101,7 +101,7 @@ function shb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '4.4';
+  return file_exists($file) ? (string) filemtime($file) : '4.5';
 }
 
 function shb_sanitize_link($link)
@@ -133,6 +133,34 @@ function shb_sanitize_pages($pages)
   return array_values(array_filter($pages, function ($page_id) {
     return get_post_type($page_id) === 'page';
   }));
+}
+
+function shb_get_page_hierarchy_label($page_id)
+{
+  $page_id = absint($page_id);
+  $page = get_post($page_id);
+
+  if (!$page || $page->post_type !== 'page') {
+    return '';
+  }
+
+  $ancestor_ids = array_reverse(get_post_ancestors($page_id));
+  $hierarchy_ids = array_merge($ancestor_ids, [$page_id]);
+  $page_titles = [];
+
+  foreach ($hierarchy_ids as $hierarchy_page_id) {
+    $hierarchy_page_id = absint($hierarchy_page_id);
+    $hierarchy_page = get_post($hierarchy_page_id);
+
+    if (!$hierarchy_page || $hierarchy_page->post_type !== 'page') {
+      continue;
+    }
+
+    $page_title = get_the_title($hierarchy_page_id);
+    $page_titles[] = $page_title ? $page_title : sprintf(shb_translate('Página #%d'), $hierarchy_page_id);
+  }
+
+  return implode(' / ', $page_titles);
 }
 
 /* =====================================================
@@ -225,7 +253,7 @@ add_action('manage_shb_banner_posts_custom_column', function ($column, $post_id)
     $page_links = [];
 
     foreach ($page_ids as $page_id) {
-      $page_title = get_the_title($page_id);
+      $page_title = shb_get_page_hierarchy_label($page_id);
       $page_title = $page_title ? $page_title : sprintf(shb_translate('Página #%d'), $page_id);
       $edit_link = get_edit_post_link($page_id);
       $page_links[] = $edit_link
@@ -400,7 +428,7 @@ function shb_render_metabox($post)
         <?php foreach (get_pages() as $page) : ?>
           <?php
           $page_id = absint($page->ID);
-          $page_title = get_the_title($page_id);
+          $page_title = shb_get_page_hierarchy_label($page_id);
           $page_title = $page_title ? $page_title : sprintf(shb_translate('Página #%d'), $page_id);
           $is_selected = in_array($page_id, $selected_pages, true);
           $is_used = in_array($page_id, $used_pages, true);
@@ -435,7 +463,7 @@ function shb_render_metabox($post)
             $page_titles = [];
 
             foreach ($item['pages'] as $page_id) {
-              $page_title = get_the_title($page_id);
+              $page_title = shb_get_page_hierarchy_label($page_id);
               $page_titles[] = $page_title ? $page_title : sprintf(shb_translate('Página #%d'), $page_id);
             }
             ?>

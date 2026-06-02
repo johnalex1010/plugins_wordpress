@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-modal-checklist.php`.
 - Text domain: `spec-modal-pro`.
 - CPT privado: `smp_modal`.
-- Versión documentada: 3.3.
+- Versión documentada: 3.4.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: modal promocional segmentado por página y rol.
 
@@ -76,6 +76,7 @@ Validar manualmente en WordPress si cambia UI o render:
 - selección de imagen
 - URL y target de CTA
 - asignación de páginas y roles
+- jerarquía padre/hija en el selector de páginas
 - columnas administrativas
 - render frontend
 - cierre y frecuencia

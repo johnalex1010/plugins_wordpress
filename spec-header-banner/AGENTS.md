@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-header-banner.php`.
 - Text domain: `spec-header-banner`.
 - CPT privado: `shb_banner`.
-- Versión documentada: 4.4.
+- Versión documentada: 4.5.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: banner full width bajo breadcrumbs si existen o bajo el header como fallback.
 
@@ -71,6 +71,7 @@ Validar manualmente en WordPress si cambia UI o render:
 - creación y edición de banners
 - publicación con imagen obligatoria
 - bloqueo de páginas ya usadas
+- jerarquía padre/hija en el selector de páginas
 - ubicación bajo breadcrumbs
 - fallback bajo header
 - targets `_self` y `_blank`

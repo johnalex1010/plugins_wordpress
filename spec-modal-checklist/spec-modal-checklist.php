@@ -4,7 +4,7 @@
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
  * Description: Gestiona modales promocionales por página, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
- * Version: 3.3
+ * Version: 3.4
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -110,7 +110,35 @@ function smp_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '3.3';
+  return file_exists($file) ? (string) filemtime($file) : '3.4';
+}
+
+function smp_get_page_hierarchy_label($page_id)
+{
+  $page_id = absint($page_id);
+  $page = get_post($page_id);
+
+  if (!$page || $page->post_type !== 'page') {
+    return '';
+  }
+
+  $ancestor_ids = array_reverse(get_post_ancestors($page_id));
+  $hierarchy_ids = array_merge($ancestor_ids, [$page_id]);
+  $page_titles = [];
+
+  foreach ($hierarchy_ids as $hierarchy_page_id) {
+    $hierarchy_page_id = absint($hierarchy_page_id);
+    $hierarchy_page = get_post($hierarchy_page_id);
+
+    if (!$hierarchy_page || $hierarchy_page->post_type !== 'page') {
+      continue;
+    }
+
+    $page_title = get_the_title($hierarchy_page_id);
+    $page_titles[] = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $hierarchy_page_id);
+  }
+
+  return implode(' / ', $page_titles);
 }
 
 /* =====================================================
@@ -182,7 +210,7 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
         continue;
       }
 
-      $page_title = get_the_title($page_id);
+      $page_title = smp_get_page_hierarchy_label($page_id);
       $page_title = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $page_id);
       $edit_link = get_edit_post_link($page_id);
 
@@ -392,7 +420,7 @@ function smp_meta_callback($post)
         <?php foreach (get_pages() as $page) : ?>
           <?php
           $page_id = absint($page->ID);
-          $page_title = get_the_title($page_id);
+          $page_title = smp_get_page_hierarchy_label($page_id);
           $page_title = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $page_id);
           $is_selected = in_array($page_id, $pages, true);
           $is_used = in_array($page_id, $used_pages, true);
@@ -427,7 +455,7 @@ function smp_meta_callback($post)
             $page_titles = [];
 
             foreach ($item['pages'] as $page_id) {
-              $page_title = get_the_title($page_id);
+              $page_title = smp_get_page_hierarchy_label($page_id);
               $page_titles[] = $page_title ? $page_title : sprintf(smp_translate('Página #%d'), $page_id);
             }
             ?>
