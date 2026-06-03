@@ -959,7 +959,7 @@ add_action('wp_footer', function () {
 
       $rendered_banner = true;
   ?>
-      <aside id="sfb-banner-<?php echo esc_attr($banner_id); ?>" class="sfb-floating-banner sfb-floating-banner--video" role="complementary" aria-label="<?php echo esc_attr($banner_label); ?>">
+      <div id="sfb-banner-<?php echo esc_attr($banner_id); ?>" class="sfb-floating-banner sfb-floating-banner--video" role="complementary" aria-label="<?php echo esc_attr($banner_label); ?>">
 
         <div class="sfb-floating-banner__inner">
 
@@ -970,13 +970,13 @@ add_action('wp_footer', function () {
           </video>
 
           <?php if ($link_url) : ?>
-          <a class="sfb-floating-banner__cta" href="<?php echo sfb_esc_link_url($link_url); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?><?php echo $cta_id ? ' id="' . esc_attr($cta_id) . '"' : ''; ?>>
-            <?php echo esc_html($cta_label); ?>
-          </a>
+            <a class="sfb-floating-banner__cta" href="<?php echo sfb_esc_link_url($link_url); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?><?php echo $cta_id ? ' id="' . esc_attr($cta_id) . '"' : ''; ?>>
+              <?php echo esc_html($cta_label); ?>
+            </a>
           <?php endif; ?>
 
         </div>
-      </aside>
+      </div>
     <?php
       continue;
     }
@@ -1004,9 +1004,9 @@ add_action('wp_footer', function () {
         <button type="button" class="sfb-floating-banner__close" data-sfb-banner-id="<?php echo esc_attr($banner_id); ?>" aria-label="<?php echo esc_attr__('Cerrar banner', 'spec-floating-banner'); ?>">&times;</button>
 
         <?php if ($link_url) : ?>
-        <a href="<?php echo sfb_esc_link_url($link_url); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?>>
-          <?php echo wp_kses_post($image_markup); ?>
-        </a>
+          <a href="<?php echo sfb_esc_link_url($link_url); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $link_rel ? ' rel="' . esc_attr($link_rel) . '"' : ''; ?>>
+            <?php echo wp_kses_post($image_markup); ?>
+          </a>
         <?php else : ?>
           <?php echo wp_kses_post($image_markup); ?>
         <?php endif; ?>
