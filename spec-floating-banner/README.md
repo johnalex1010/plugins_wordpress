@@ -19,6 +19,7 @@ El plugin está pensado para administración interna: el CPT no es público, no 
 - CTA para banners de video: nombre obligatorio, link opcional y target configurable.
 - ID opcional del CTA para configurar seguimiento de clics con GTM.
 - Target configurable: misma ventana o nueva ventana.
+- Programación opcional con fecha de inicio y fecha de fin.
 - Selección de páginas donde se mostrará cada banner.
 - Selector de páginas con ruta jerárquica cuando la página tiene padre.
 - Prevención de publicación si faltan los campos obligatorios según el tipo de banner.
@@ -130,8 +131,9 @@ Este plugin debe mantenerse fácil de leer, mantener y extender:
 5. Si es imagen, seleccionar una imagen y opcionalmente agregar un enlace válido, `#` o un ancla como `#formulario`.
 6. Si es video, cargar un video MP4 o WebM, agregar nombre CTA y opcionalmente link CTA con URL, `#` o un ancla como `#formulario`.
 7. Opcionalmente agregar un ID al CTA para seguimiento de clics con GTM.
-8. Seleccionar las páginas donde debe mostrarse.
-9. Publicar.
+8. Opcionalmente definir fecha de inicio y fecha de fin de publicación.
+9. Seleccionar las páginas donde debe mostrarse.
+10. Publicar.
 
 Si faltan campos obligatorios según el tipo seleccionado, el banner no podrá quedar publicado y pasará a borrador.
 
@@ -160,6 +162,7 @@ También se recomienda validar en WordPress:
 - Publicación bloqueada sin video MP4/WebM o nombre CTA en banners de video.
 - Enlaces opcionales con URL, `#` y anclas como `#formulario`.
 - Render frontend en una página asignada.
+- Render frontend respetando fecha de inicio futura y fecha de fin vencida.
 - Render frontend de video con CTA visible debajo.
 - Cierre temporal del banner.
 - Target `_self` y `_blank`.
@@ -184,4 +187,6 @@ No hay migraciones de base de datos. El plugin usa post meta estándar de WordPr
 - `_sfb_cta_id`
 - `_sfb_link`
 - `_sfb_target`
+- `_sfb_start_date`
+- `_sfb_end_date`
 - `_sfb_pages`

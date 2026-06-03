@@ -4,7 +4,7 @@
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
  * Description: Gestiona modales promocionales por página, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
- * Version: 3.4
+ * Version: 3.5
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -73,6 +73,14 @@ function smp_translate($text)
     'No se encontraron pÃ¡ginas con ese criterio.' => 'No pages were found with that criterion.',
     'Páginas donde está activo un modal' => 'Pages where a modal is active',
     'PÃ¡ginas donde estÃ¡ activo un modal' => 'Pages where a modal is active',
+    'Programación' => 'Schedule',
+    'Programación de publicación' => 'Publication schedule',
+    'Deja las fechas vacías para mantener el modal siempre visible mientras esté publicado y activo.' => 'Leave the dates empty to keep the modal always visible while it is published and active.',
+    'Fecha de inicio' => 'Start date',
+    'Fecha de fin' => 'End date',
+    'Sin programación' => 'No schedule',
+    'Sin inicio' => 'No start date',
+    'Sin fin' => 'No end date',
     'Modal' => 'Modal',
     'No hay modales activos con páginas asignadas.' => 'There are no active modals with assigned pages.',
     'No hay modales activos con pÃ¡ginas asignadas.' => 'There are no active modals with assigned pages.',
@@ -110,7 +118,7 @@ function smp_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '3.4';
+  return file_exists($file) ? (string) filemtime($file) : '3.5';
 }
 
 function smp_get_page_hierarchy_label($page_id)
@@ -141,6 +149,65 @@ function smp_get_page_hierarchy_label($page_id)
   return implode(' / ', $page_titles);
 }
 
+function smp_sanitize_schedule_date($date)
+{
+  $date = trim(sanitize_text_field($date));
+
+  if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+    return '';
+  }
+
+  [$year, $month, $day] = array_map('absint', explode('-', $date));
+
+  return checkdate($month, $day, $year) ? $date : '';
+}
+
+function smp_get_schedule_timestamp($date, $boundary)
+{
+  $date = smp_sanitize_schedule_date($date);
+
+  if ($date === '') {
+    return 0;
+  }
+
+  $time = $boundary === 'end' ? '23:59:59' : '00:00:00';
+
+  $timezone = function_exists('wp_timezone') ? wp_timezone() : null;
+  $date_time = $timezone
+    ? date_create_immutable_from_format('Y-m-d H:i:s', $date . ' ' . $time, $timezone)
+    : date_create_immutable_from_format('Y-m-d H:i:s', $date . ' ' . $time);
+
+  return $date_time ? $date_time->getTimestamp() : 0;
+}
+
+function smp_get_publication_schedule($modal_id)
+{
+  return [
+    'start_date' => smp_sanitize_schedule_date(get_post_meta($modal_id, '_smp_start_date', true)),
+    'end_date' => smp_sanitize_schedule_date(get_post_meta($modal_id, '_smp_end_date', true)),
+  ];
+}
+
+function smp_is_modal_in_publication_window($modal_id, $timestamp = null)
+{
+  $timestamp = $timestamp ?: time();
+  $schedule = smp_get_publication_schedule($modal_id);
+  $start_timestamp = $schedule['start_date'] ? smp_get_schedule_timestamp($schedule['start_date'], 'start') : 0;
+  $end_timestamp = $schedule['end_date'] ? smp_get_schedule_timestamp($schedule['end_date'], 'end') : PHP_INT_MAX;
+
+  return $timestamp >= $start_timestamp && $timestamp <= $end_timestamp;
+}
+
+function smp_schedules_overlap($first_start_date, $first_end_date, $second_start_date, $second_end_date)
+{
+  $first_start = $first_start_date ? smp_get_schedule_timestamp($first_start_date, 'start') : 0;
+  $first_end = $first_end_date ? smp_get_schedule_timestamp($first_end_date, 'end') : PHP_INT_MAX;
+  $second_start = $second_start_date ? smp_get_schedule_timestamp($second_start_date, 'start') : 0;
+  $second_end = $second_end_date ? smp_get_schedule_timestamp($second_end_date, 'end') : PHP_INT_MAX;
+
+  return $first_start <= $second_end && $second_start <= $first_end;
+}
+
 /* =====================================================
    1. CUSTOM POST TYPE
 ===================================================== */
@@ -168,6 +235,7 @@ add_filter('manage_smp_modal_posts_columns', function ($columns) {
     if ($key === 'title') {
       $new_columns['smp_publication_status'] = smp_translate('Estado');
       $new_columns['smp_enabled'] = smp_translate('Activo');
+      $new_columns['smp_publication_schedule'] = smp_translate('Programación');
       $new_columns['smp_target_pages'] = smp_translate('Páginas del modal');
     }
   }
@@ -182,6 +250,21 @@ add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) 
     $status_label = $is_published ? smp_translate('Publicado') : smp_translate('No publicado');
 
     echo '<span class="smp-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
+    return;
+  }
+
+  if ($column === 'smp_publication_schedule') {
+    $schedule = smp_get_publication_schedule($post_id);
+
+    if (!$schedule['start_date'] && !$schedule['end_date']) {
+      echo '<span class="smp-empty-column">' . esc_html(smp_translate('Sin programación')) . '</span>';
+      return;
+    }
+
+    $start_label = $schedule['start_date'] ? $schedule['start_date'] : smp_translate('Sin inicio');
+    $end_label = $schedule['end_date'] ? $schedule['end_date'] : smp_translate('Sin fin');
+
+    echo esc_html($start_label . ' - ' . $end_label);
     return;
   }
 
@@ -285,7 +368,7 @@ function smp_add_meta_boxes()
 }
 add_action('add_meta_boxes', 'smp_add_meta_boxes');
 
-function smp_get_used_pages_by_active_modals($exclude_modal_id)
+function smp_get_used_pages_by_active_modals($exclude_modal_id, $start_date = '', $end_date = '')
 {
   $exclude_modal_id = absint($exclude_modal_id);
 
@@ -313,6 +396,12 @@ function smp_get_used_pages_by_active_modals($exclude_modal_id)
   $used_pages = [];
 
   foreach ($modal_ids as $modal_id) {
+    $schedule = smp_get_publication_schedule($modal_id);
+
+    if (!smp_schedules_overlap($start_date, $end_date, $schedule['start_date'], $schedule['end_date'])) {
+      continue;
+    }
+
     $pages = array_filter(array_map('absint', (array) get_post_meta($modal_id, '_smp_pages', true)));
 
     foreach ($pages as $page_id) {
@@ -350,6 +439,10 @@ function smp_get_active_modals_with_pages()
   $items = [];
 
   foreach ($modal_ids as $modal_id) {
+    if (!smp_is_modal_in_publication_window($modal_id)) {
+      continue;
+    }
+
     $pages = array_filter(array_map('absint', (array) get_post_meta($modal_id, '_smp_pages', true)));
     $pages = array_values(array_filter($pages, function ($page_id) {
       return get_post_type($page_id) === 'page';
@@ -384,7 +477,8 @@ function smp_meta_callback($post)
   $image_id = absint(get_post_meta($post->ID, '_smp_image_id', true));
   $enabled = get_post_meta($post->ID, '_smp_enabled', true);
   $enabled = ($enabled === '' || $enabled === null) ? '1' : $enabled;
-  $used_pages = smp_get_used_pages_by_active_modals($post->ID);
+  $schedule = smp_get_publication_schedule($post->ID);
+  $used_pages = smp_get_used_pages_by_active_modals($post->ID, $schedule['start_date'], $schedule['end_date']);
   $active_items = smp_get_active_modals_with_pages();
 ?>
 
@@ -408,6 +502,19 @@ function smp_meta_callback($post)
         <option value="persistent" <?php selected($frequency, 'persistent'); ?>><?php echo smp_esc_html('Persistente (1 hora)'); ?></option>
       </select>
     </p>
+
+    <fieldset class="smp-field smp-schedule">
+      <legend><strong><?php echo smp_esc_html('Programación de publicación'); ?></strong></legend>
+      <p class="description"><?php echo smp_esc_html('Deja las fechas vacías para mantener el modal siempre visible mientras esté publicado y activo.'); ?></p>
+      <label class="smp-schedule__field" for="smp_start_date">
+        <span><?php echo smp_esc_html('Fecha de inicio'); ?></span>
+        <input type="date" id="smp_start_date" name="smp_start_date" value="<?php echo esc_attr($schedule['start_date']); ?>">
+      </label>
+      <label class="smp-schedule__field" for="smp_end_date">
+        <span><?php echo smp_esc_html('Fecha de fin'); ?></span>
+        <input type="date" id="smp_end_date" name="smp_end_date" value="<?php echo esc_attr($schedule['end_date']); ?>">
+      </label>
+    </fieldset>
 
     <hr>
 
@@ -517,13 +624,19 @@ function smp_save_meta($post_id)
   $frequency = in_array($frequency, ['session', 'persistent'], true) ? $frequency : 'session';
   update_post_meta($post_id, '_smp_frequency', $frequency);
 
+  $start_date = isset($_POST['smp_start_date']) ? smp_sanitize_schedule_date(wp_unslash($_POST['smp_start_date'])) : '';
+  update_post_meta($post_id, '_smp_start_date', $start_date);
+
+  $end_date = isset($_POST['smp_end_date']) ? smp_sanitize_schedule_date(wp_unslash($_POST['smp_end_date'])) : '';
+  update_post_meta($post_id, '_smp_end_date', $end_date);
+
   $requested_pages = isset($_POST['smp_pages']) ? (array) wp_unslash($_POST['smp_pages']) : [];
   $requested_pages = array_values(array_filter(array_map('absint', $requested_pages)));
   $requested_pages = array_values(array_filter($requested_pages, function ($page_id) {
     return get_post_type($page_id) === 'page';
   }));
 
-  $used_pages = smp_get_used_pages_by_active_modals($post_id);
+  $used_pages = smp_get_used_pages_by_active_modals($post_id, $start_date, $end_date);
   update_post_meta($post_id, '_smp_pages', array_values(array_diff($requested_pages, $used_pages)));
 
   $cta_url = isset($_POST['smp_cta_url']) ? esc_url_raw(wp_unslash($_POST['smp_cta_url'])) : '';
@@ -612,6 +725,10 @@ function smp_get_current_page_modal_ids()
   ]);
 
   foreach ($candidate_ids as $modal_id) {
+    if (!smp_is_modal_in_publication_window($modal_id)) {
+      continue;
+    }
+
     $pages = array_map('absint', (array) get_post_meta($modal_id, '_smp_pages', true));
 
     if ($pages && !array_intersect($pages, $context_page_ids)) {

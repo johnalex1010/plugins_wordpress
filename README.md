@@ -29,9 +29,9 @@ Evitar código difícil de entender: nombres ambiguos, funciones enormes, duplic
 
 | Plugin               | Carpeta                | Versión | Propósito                                                                                           |
 | -------------------- | ---------------------- | ------- | --------------------------------------------------------------------------------------------------- |
-| SPEC Header Banner   | `spec-header-banner`   | 4.5     | Banners full width por página, ubicados bajo breadcrumbs si existen o bajo el header como fallback. |
-| SPEC Floating Banner | `spec-floating-banner` | 1.13    | Banners flotantes por página, con imagen o video, CTA, target y cierre temporal.                    |
-| SPEC Modal Pro       | `spec-modal-checklist` | 3.4     | Modales promocionales por página y rol, con imagen clickeable, frecuencia y estado activo/inactivo. |
+| SPEC Header Banner   | `spec-header-banner`   | 4.6     | Banners full width por página, ubicados bajo breadcrumbs si existen o bajo el header como fallback. |
+| SPEC Floating Banner | `spec-floating-banner` | 1.14    | Banners flotantes por página, con imagen o video, CTA, target, cierre temporal y programación.      |
+| SPEC Modal Pro       | `spec-modal-checklist` | 3.5     | Modales promocionales por página y rol, con imagen clickeable, frecuencia, estado y programación.  |
 
 ## SPEC Header Banner
 
@@ -43,6 +43,7 @@ Características principales:
 - Imagen obligatoria.
 - Enlace opcional con soporte para URL completa o anclas como `#formulario_inscripcion`.
 - Target `_self` o `_blank`.
+- Programación opcional con fecha de inicio y fecha de fin.
 - Checklist de páginas con buscador y ruta jerárquica padre/hija.
 - Columnas administrativas de estado y páginas asignadas.
 - Inserción bajo breadcrumbs si existen; si no, bajo el header.
@@ -63,6 +64,7 @@ Características principales:
 - Enlaces opcionales con soporte para URL, `#` o anclas como `#formulario`.
 - ID opcional del CTA para seguimiento de clics con GTM.
 - Target `_self` o `_blank`.
+- Programación opcional con fecha de inicio y fecha de fin.
 - Checklist de páginas con buscador y ruta jerárquica padre/hija.
 - Bloqueo de páginas usadas por otros banners publicados.
 - Columnas administrativas de estado y páginas asignadas.
@@ -82,6 +84,7 @@ Características principales:
 - Segmentación por páginas y roles.
 - Delay configurable.
 - Frecuencia `session` o `persistent` de 1 hora.
+- Programación opcional con fecha de inicio y fecha de fin.
 - Imagen opcional clickeable mediante CTA URL.
 - Checklist de páginas con buscador y ruta jerárquica padre/hija.
 - Bloqueo de páginas usadas por otros modales publicados.

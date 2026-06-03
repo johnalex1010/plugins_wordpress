@@ -2,6 +2,10 @@
   width: 140px;
 }
 
+.column-sfb_publication_schedule {
+  width: 180px;
+}
+
 .column-sfb_media_type {
   width: 130px;
 }
@@ -49,6 +53,13 @@
 .sfb-field__select {
   display: block;
   margin-top: 6px;
+}
+
+.sfb-schedule__field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 16px 0 0;
 }
 
 .sfb-preview {

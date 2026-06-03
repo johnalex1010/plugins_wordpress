@@ -15,6 +15,7 @@ Para evitar conflictos visuales, una página asignada a un banner publicado qued
 - Imagen obligatoria.
 - Enlace opcional.
 - Target `_self` o `_blank`.
+- Programación opcional con fecha de inicio y fecha de fin.
 - Checklist de páginas con buscador y ruta jerárquica padre/hija.
 - Bloqueo de páginas ya usadas por otros banners publicados.
 - Tabla informativa de banners activos y páginas asignadas.
@@ -119,6 +120,8 @@ Validar en WordPress:
 - Confirmar que el selector muestra jerarquía de páginas cuando existen padres.
 - Confirmar que esas páginas quedan bloqueadas en el segundo.
 - Publicar un banner con imagen.
+- Configurar fecha de inicio futura y confirmar que no se renderiza antes de la vigencia.
+- Configurar fecha de fin vencida y confirmar que no se renderiza después de la vigencia.
 - Confirmar que aparece full width bajo breadcrumbs si existen.
 - Confirmar que aparece bajo el header cuando no hay breadcrumbs.
 - Probar target `_self` y `_blank`.
@@ -143,4 +146,6 @@ Restaurar `spec-header-banner.php`, `README.md`, los archivos dentro de `assets/
 - `_shb_image_id`
 - `_shb_link`
 - `_shb_target`
+- `_shb_start_date`
+- `_shb_end_date`
 - `_shb_pages`

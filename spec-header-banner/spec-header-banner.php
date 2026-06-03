@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Header Banner
  * Description: Gestiona múltiples banners full width por página y los ubica bajo breadcrumbs si existen o bajo el header como fallback, con imagen obligatoria, enlace opcional, target configurable y administración con buscador.
- * Version: 4.5
+ * Version: 4.6
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -71,6 +71,14 @@ function shb_translate($text)
     'No se encontraron pÃ¡ginas con ese criterio.' => 'No pages were found with that criterion.',
     'Páginas donde está activo un banner' => 'Pages where a banner is active',
     'PÃ¡ginas donde estÃ¡ activo un banner' => 'Pages where a banner is active',
+    'Programación' => 'Schedule',
+    'Programación de publicación' => 'Publication schedule',
+    'Deja las fechas vacías para mantener el banner siempre visible mientras esté publicado.' => 'Leave the dates empty to keep the banner always visible while it is published.',
+    'Fecha de inicio' => 'Start date',
+    'Fecha de fin' => 'End date',
+    'Sin programación' => 'No schedule',
+    'Sin inicio' => 'No start date',
+    'Sin fin' => 'No end date',
     'Banner' => 'Banner',
     'No hay banners activos con páginas asignadas.' => 'There are no active banners with assigned pages.',
     'No hay banners activos con pÃ¡ginas asignadas.' => 'There are no active banners with assigned pages.',
@@ -101,7 +109,7 @@ function shb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '4.5';
+  return file_exists($file) ? (string) filemtime($file) : '4.6';
 }
 
 function shb_sanitize_link($link)
@@ -133,6 +141,65 @@ function shb_sanitize_pages($pages)
   return array_values(array_filter($pages, function ($page_id) {
     return get_post_type($page_id) === 'page';
   }));
+}
+
+function shb_sanitize_schedule_date($date)
+{
+  $date = trim(sanitize_text_field($date));
+
+  if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+    return '';
+  }
+
+  [$year, $month, $day] = array_map('absint', explode('-', $date));
+
+  return checkdate($month, $day, $year) ? $date : '';
+}
+
+function shb_get_schedule_timestamp($date, $boundary)
+{
+  $date = shb_sanitize_schedule_date($date);
+
+  if ($date === '') {
+    return 0;
+  }
+
+  $time = $boundary === 'end' ? '23:59:59' : '00:00:00';
+
+  $timezone = function_exists('wp_timezone') ? wp_timezone() : null;
+  $date_time = $timezone
+    ? date_create_immutable_from_format('Y-m-d H:i:s', $date . ' ' . $time, $timezone)
+    : date_create_immutable_from_format('Y-m-d H:i:s', $date . ' ' . $time);
+
+  return $date_time ? $date_time->getTimestamp() : 0;
+}
+
+function shb_get_publication_schedule($banner_id)
+{
+  return [
+    'start_date' => shb_sanitize_schedule_date(get_post_meta($banner_id, '_shb_start_date', true)),
+    'end_date' => shb_sanitize_schedule_date(get_post_meta($banner_id, '_shb_end_date', true)),
+  ];
+}
+
+function shb_is_banner_in_publication_window($banner_id, $timestamp = null)
+{
+  $timestamp = $timestamp ?: time();
+  $schedule = shb_get_publication_schedule($banner_id);
+  $start_timestamp = $schedule['start_date'] ? shb_get_schedule_timestamp($schedule['start_date'], 'start') : 0;
+  $end_timestamp = $schedule['end_date'] ? shb_get_schedule_timestamp($schedule['end_date'], 'end') : PHP_INT_MAX;
+
+  return $timestamp >= $start_timestamp && $timestamp <= $end_timestamp;
+}
+
+function shb_schedules_overlap($first_start_date, $first_end_date, $second_start_date, $second_end_date)
+{
+  $first_start = $first_start_date ? shb_get_schedule_timestamp($first_start_date, 'start') : 0;
+  $first_end = $first_end_date ? shb_get_schedule_timestamp($first_end_date, 'end') : PHP_INT_MAX;
+  $second_start = $second_start_date ? shb_get_schedule_timestamp($second_start_date, 'start') : 0;
+  $second_end = $second_end_date ? shb_get_schedule_timestamp($second_end_date, 'end') : PHP_INT_MAX;
+
+  return $first_start <= $second_end && $second_start <= $first_end;
 }
 
 function shb_get_page_hierarchy_label($page_id)
@@ -225,6 +292,7 @@ add_filter('manage_shb_banner_posts_columns', function ($columns) {
 
     if ($key === 'title') {
       $custom_columns['shb_publication_status'] = shb_translate('Estado');
+      $custom_columns['shb_publication_schedule'] = shb_translate('Programación');
       $custom_columns['shb_target_pages'] = shb_translate('Páginas del banner');
     }
   }
@@ -239,6 +307,21 @@ add_action('manage_shb_banner_posts_custom_column', function ($column, $post_id)
     $status_label = $is_published ? shb_translate('Publicado') : shb_translate('No publicado');
 
     echo '<span class="shb-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
+    return;
+  }
+
+  if ($column === 'shb_publication_schedule') {
+    $schedule = shb_get_publication_schedule($post_id);
+
+    if (!$schedule['start_date'] && !$schedule['end_date']) {
+      echo '<span class="shb-empty-column">' . esc_html(shb_translate('Sin programación')) . '</span>';
+      return;
+    }
+
+    $start_label = $schedule['start_date'] ? $schedule['start_date'] : shb_translate('Sin inicio');
+    $end_label = $schedule['end_date'] ? $schedule['end_date'] : shb_translate('Sin fin');
+
+    echo esc_html($start_label . ' - ' . $end_label);
     return;
   }
 
@@ -328,7 +411,7 @@ add_action('add_meta_boxes', function () {
   add_meta_box('shb_config', shb_translate('Configuración del Banner'), 'shb_render_metabox', 'shb_banner', 'normal', 'high');
 });
 
-function shb_get_used_pages_by_banners($exclude_banner_id)
+function shb_get_used_pages_by_banners($exclude_banner_id, $start_date = '', $end_date = '')
 {
   $banner_ids = get_posts([
     'post_type' => 'shb_banner',
@@ -342,6 +425,12 @@ function shb_get_used_pages_by_banners($exclude_banner_id)
   $used_pages = [];
 
   foreach ($banner_ids as $banner_id) {
+    $schedule = shb_get_publication_schedule($banner_id);
+
+    if (!shb_schedules_overlap($start_date, $end_date, $schedule['start_date'], $schedule['end_date'])) {
+      continue;
+    }
+
     foreach (shb_sanitize_pages(get_post_meta($banner_id, '_shb_pages', true)) as $page_id) {
       $used_pages[$page_id] = true;
     }
@@ -363,6 +452,10 @@ function shb_get_active_banners_with_pages()
   $items = [];
 
   foreach ($banner_ids as $banner_id) {
+    if (!shb_is_banner_in_publication_window($banner_id)) {
+      continue;
+    }
+
     $pages = shb_sanitize_pages(get_post_meta($banner_id, '_shb_pages', true));
 
     if (!$pages) {
@@ -385,7 +478,8 @@ function shb_render_metabox($post)
   $link = get_post_meta($post->ID, '_shb_link', true);
   $target = shb_sanitize_target(get_post_meta($post->ID, '_shb_target', true));
   $selected_pages = shb_sanitize_pages(get_post_meta($post->ID, '_shb_pages', true));
-  $used_pages = shb_get_used_pages_by_banners($post->ID);
+  $schedule = shb_get_publication_schedule($post->ID);
+  $used_pages = shb_get_used_pages_by_banners($post->ID, $schedule['start_date'], $schedule['end_date']);
   $active_items = shb_get_active_banners_with_pages();
 
   wp_nonce_field('shb_save_banner', 'shb_nonce');
@@ -418,6 +512,19 @@ function shb_render_metabox($post)
         <option value="_blank" <?php selected($target, '_blank'); ?>><?php echo shb_esc_html('Nueva ventana (_blank)'); ?></option>
       </select>
     </p>
+
+    <fieldset class="shb-field shb-schedule">
+      <legend><strong><?php echo shb_esc_html('Programación de publicación'); ?></strong></legend>
+      <p class="description"><?php echo shb_esc_html('Deja las fechas vacías para mantener el banner siempre visible mientras esté publicado.'); ?></p>
+      <label class="shb-schedule__field" for="shb_start_date">
+        <span><?php echo shb_esc_html('Fecha de inicio'); ?></span>
+        <input type="date" id="shb_start_date" name="shb_start_date" value="<?php echo esc_attr($schedule['start_date']); ?>">
+      </label>
+      <label class="shb-schedule__field" for="shb_end_date">
+        <span><?php echo shb_esc_html('Fecha de fin'); ?></span>
+        <input type="date" id="shb_end_date" name="shb_end_date" value="<?php echo esc_attr($schedule['end_date']); ?>">
+      </label>
+    </fieldset>
 
     <h4><?php echo shb_esc_html('Páginas'); ?></h4>
     <div class="shb-page-selector">
@@ -497,9 +604,15 @@ add_action('save_post', function ($post_id) {
   $target = isset($_POST['shb_target']) ? shb_sanitize_target(wp_unslash($_POST['shb_target'])) : '_self';
   update_post_meta($post_id, '_shb_target', $target);
 
+  $start_date = isset($_POST['shb_start_date']) ? shb_sanitize_schedule_date(wp_unslash($_POST['shb_start_date'])) : '';
+  update_post_meta($post_id, '_shb_start_date', $start_date);
+
+  $end_date = isset($_POST['shb_end_date']) ? shb_sanitize_schedule_date(wp_unslash($_POST['shb_end_date'])) : '';
+  update_post_meta($post_id, '_shb_end_date', $end_date);
+
   $pages = isset($_POST['shb_pages']) ? (array) wp_unslash($_POST['shb_pages']) : [];
   $pages = shb_sanitize_pages($pages);
-  $used_pages = shb_get_used_pages_by_banners($post_id);
+  $used_pages = shb_get_used_pages_by_banners($post_id, $start_date, $end_date);
   update_post_meta($post_id, '_shb_pages', array_values(array_diff($pages, $used_pages)));
 });
 
@@ -606,6 +719,10 @@ function shb_get_current_page_banner_ids()
   ]);
 
   foreach ($candidate_ids as $banner_id) {
+    if (!shb_is_banner_in_publication_window($banner_id)) {
+      continue;
+    }
+
     $pages = shb_sanitize_pages(get_post_meta($banner_id, '_shb_pages', true));
 
     if ($pages && array_intersect($pages, $context_page_ids)) {

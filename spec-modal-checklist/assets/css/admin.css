@@ -3,6 +3,10 @@
   width: 140px;
 }
 
+.column-smp_publication_schedule {
+  width: 180px;
+}
+
 .column-smp_target_pages {
   width: 32%;
 }
@@ -41,6 +45,13 @@
 .smp-field__select {
   display: block;
   margin-top: 6px;
+}
+
+.smp-schedule__field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 16px 0 0;
 }
 
 .smp-field__multiselect {

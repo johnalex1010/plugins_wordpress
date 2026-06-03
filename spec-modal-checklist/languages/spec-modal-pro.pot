@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SPEC Modal Pro 3.4\n"
+"Project-Id-Version: SPEC Modal Pro 3.5\n"
 "Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
 "POT-Creation-Date: 2026-05-24 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -81,6 +81,30 @@ msgid "No se encontraron páginas con ese criterio."
 msgstr ""
 
 msgid "Páginas donde está activo un modal"
+msgstr ""
+
+msgid "Programación"
+msgstr ""
+
+msgid "Programación de publicación"
+msgstr ""
+
+msgid "Deja las fechas vacías para mantener el modal siempre visible mientras esté publicado y activo."
+msgstr ""
+
+msgid "Fecha de inicio"
+msgstr ""
+
+msgid "Fecha de fin"
+msgstr ""
+
+msgid "Sin programación"
+msgstr ""
+
+msgid "Sin inicio"
+msgstr ""
+
+msgid "Sin fin"
 msgstr ""
 
 msgid "Modal"

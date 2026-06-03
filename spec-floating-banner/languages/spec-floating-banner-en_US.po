@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SPEC Floating Banner 1.13\n"
+"Project-Id-Version: SPEC Floating Banner 1.14\n"
 "Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
 "POT-Creation-Date: 2026-05-24 00:00+0000\n"
 "PO-Revision-Date: 2026-05-24 00:00+0000\n"
@@ -123,6 +123,30 @@ msgstr "New window (_blank)"
 
 msgid "Páginas donde está activo un banner flotante"
 msgstr "Pages where a floating banner is active"
+
+msgid "Programación"
+msgstr "Schedule"
+
+msgid "Programación de publicación"
+msgstr "Publication schedule"
+
+msgid "Deja las fechas vacías para mantener el banner siempre visible mientras esté publicado."
+msgstr "Leave the dates empty to keep the banner always visible while it is published."
+
+msgid "Fecha de inicio"
+msgstr "Start date"
+
+msgid "Fecha de fin"
+msgstr "End date"
+
+msgid "Sin programación"
+msgstr "No schedule"
+
+msgid "Sin inicio"
+msgstr "No start date"
+
+msgid "Sin fin"
+msgstr "No end date"
 
 msgid "Banner flotante"
 msgstr "Floating banner"

@@ -13,6 +13,7 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Segmentación por páginas con ruta jerárquica padre/hija en el selector.
 - Delay configurable.
 - Frecuencia `session` o `persistent` de 1 hora.
+- Programación opcional con fecha de inicio y fecha de fin.
 - URL y target para enlazar la imagen del modal.
 - Imagen obligatoria para publicar.
 - Columnas administrativas de estado, activo y páginas asignadas.
@@ -115,6 +116,7 @@ Validar en WordPress:
 - Asignar páginas.
 - Confirmar que el selector muestra jerarquía de páginas cuando existen padres.
 - Revisar columnas administrativas.
+- Configurar fecha de inicio futura y fecha de fin vencida para confirmar que la vigencia controla el render.
 - Verificar render frontend, cierre y frecuencia.
 
 ## Rollback
@@ -124,6 +126,8 @@ Restaurar `spec-modal-checklist.php`, los archivos en `assets/` y la carpeta `la
 - `_smp_enabled`
 - `_smp_delay`
 - `_smp_frequency`
+- `_smp_start_date`
+- `_smp_end_date`
 - `_smp_pages`
 - `_smp_cta_url`
 - `_smp_cta_target`

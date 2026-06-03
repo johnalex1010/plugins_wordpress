@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Floating Banner
  * Description: Gestiona banners flotantes por página con imagen o video, CTA, target configurable, cierre temporal y columnas administrativas de estado/asignación.
- * Version: 1.13
+ * Version: 1.14
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Text Domain: spec-floating-banner
@@ -65,6 +65,14 @@ function sfb_translate($text)
     'Nueva ventana (_blank)' => 'New window (_blank)',
     'Páginas donde está activo un banner flotante' => 'Pages where a floating banner is active',
     'PÃ¡ginas donde estÃ¡ activo un banner flotante' => 'Pages where a floating banner is active',
+    'Programación' => 'Schedule',
+    'Programación de publicación' => 'Publication schedule',
+    'Deja las fechas vacías para mantener el banner siempre visible mientras esté publicado.' => 'Leave the dates empty to keep the banner always visible while it is published.',
+    'Fecha de inicio' => 'Start date',
+    'Fecha de fin' => 'End date',
+    'Sin programación' => 'No schedule',
+    'Sin inicio' => 'No start date',
+    'Sin fin' => 'No end date',
     'Banner flotante' => 'Floating banner',
     'Páginas' => 'Pages',
     'PÃ¡ginas' => 'Pages',
@@ -184,6 +192,65 @@ function sfb_is_valid_video_attachment($video_id)
   return in_array(get_post_mime_type($video_id), ['video/mp4', 'video/webm'], true);
 }
 
+function sfb_sanitize_schedule_date($date)
+{
+  $date = trim(sanitize_text_field($date));
+
+  if ($date === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+    return '';
+  }
+
+  [$year, $month, $day] = array_map('absint', explode('-', $date));
+
+  return checkdate($month, $day, $year) ? $date : '';
+}
+
+function sfb_get_schedule_timestamp($date, $boundary)
+{
+  $date = sfb_sanitize_schedule_date($date);
+
+  if ($date === '') {
+    return 0;
+  }
+
+  $time = $boundary === 'end' ? '23:59:59' : '00:00:00';
+
+  $timezone = function_exists('wp_timezone') ? wp_timezone() : null;
+  $date_time = $timezone
+    ? date_create_immutable_from_format('Y-m-d H:i:s', $date . ' ' . $time, $timezone)
+    : date_create_immutable_from_format('Y-m-d H:i:s', $date . ' ' . $time);
+
+  return $date_time ? $date_time->getTimestamp() : 0;
+}
+
+function sfb_get_publication_schedule($banner_id)
+{
+  return [
+    'start_date' => sfb_sanitize_schedule_date(get_post_meta($banner_id, '_sfb_start_date', true)),
+    'end_date' => sfb_sanitize_schedule_date(get_post_meta($banner_id, '_sfb_end_date', true)),
+  ];
+}
+
+function sfb_is_banner_in_publication_window($banner_id, $timestamp = null)
+{
+  $timestamp = $timestamp ?: time();
+  $schedule = sfb_get_publication_schedule($banner_id);
+  $start_timestamp = $schedule['start_date'] ? sfb_get_schedule_timestamp($schedule['start_date'], 'start') : 0;
+  $end_timestamp = $schedule['end_date'] ? sfb_get_schedule_timestamp($schedule['end_date'], 'end') : PHP_INT_MAX;
+
+  return $timestamp >= $start_timestamp && $timestamp <= $end_timestamp;
+}
+
+function sfb_schedules_overlap($first_start_date, $first_end_date, $second_start_date, $second_end_date)
+{
+  $first_start = $first_start_date ? sfb_get_schedule_timestamp($first_start_date, 'start') : 0;
+  $first_end = $first_end_date ? sfb_get_schedule_timestamp($first_end_date, 'end') : PHP_INT_MAX;
+  $second_start = $second_start_date ? sfb_get_schedule_timestamp($second_start_date, 'start') : 0;
+  $second_end = $second_end_date ? sfb_get_schedule_timestamp($second_end_date, 'end') : PHP_INT_MAX;
+
+  return $first_start <= $second_end && $second_start <= $first_end;
+}
+
 /* =====================================================
    1. CUSTOM POST TYPE
 ===================================================== */
@@ -216,6 +283,7 @@ add_filter('manage_sfb_banner_posts_columns', function ($columns) {
     if ($key === 'title') {
       $custom_columns['sfb_media_type'] = __('Tipo de pieza', 'spec-floating-banner');
       $custom_columns['sfb_publication_status'] = __('Estado', 'spec-floating-banner');
+      $custom_columns['sfb_publication_schedule'] = sfb_translate('Programación');
       $custom_columns['sfb_target_pages'] = __('Páginas del banner', 'spec-floating-banner');
     }
   }
@@ -235,6 +303,21 @@ add_action('manage_sfb_banner_posts_custom_column', function ($column, $post_id)
     $status_label = $is_published ? __('Publicado', 'spec-floating-banner') : __('No publicado', 'spec-floating-banner');
 
     echo '<span class="sfb-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
+    return;
+  }
+
+  if ($column === 'sfb_publication_schedule') {
+    $schedule = sfb_get_publication_schedule($post_id);
+
+    if (!$schedule['start_date'] && !$schedule['end_date']) {
+      echo '<span class="sfb-empty-column">' . esc_html(sfb_translate('Sin programación')) . '</span>';
+      return;
+    }
+
+    $start_label = $schedule['start_date'] ? $schedule['start_date'] : sfb_translate('Sin inicio');
+    $end_label = $schedule['end_date'] ? $schedule['end_date'] : sfb_translate('Sin fin');
+
+    echo esc_html($start_label . ' - ' . $end_label);
     return;
   }
 
@@ -279,7 +362,7 @@ function sfb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '1.13';
+  return file_exists($file) ? (string) filemtime($file) : '1.14';
 }
 
 function sfb_get_current_page_banners()
@@ -311,6 +394,10 @@ function sfb_get_current_page_banners()
   ]);
 
   foreach ($banners as $banner_id) {
+    if (!sfb_is_banner_in_publication_window($banner_id)) {
+      continue;
+    }
+
     $pages = array_map('absint', (array) get_post_meta($banner_id, '_sfb_pages', true));
 
     if (in_array($page_id, $pages, true)) {
@@ -386,12 +473,14 @@ function sfb_render_metabox($post)
   $link = get_post_meta($post->ID, '_sfb_link', true);
   $target = sfb_sanitize_target(get_post_meta($post->ID, '_sfb_target', true));
   $selected_pages = array_map('absint', (array) get_post_meta($post->ID, '_sfb_pages', true));
+  $schedule = sfb_get_publication_schedule($post->ID);
 
   $image_url = $image_id ? wp_get_attachment_url($image_id) : '';
   $video_url = $video_id ? wp_get_attachment_url($video_id) : '';
 
   $args = [
     'post_type' => 'sfb_banner',
+    'post_status' => 'publish',
     'post__not_in' => [$post->ID],
     'posts_per_page' => -1,
     'fields' => 'ids',
@@ -401,6 +490,12 @@ function sfb_render_metabox($post)
   $used_pages = [];
 
   foreach (get_posts($args) as $banner_id) {
+    $banner_schedule = sfb_get_publication_schedule($banner_id);
+
+    if (!sfb_schedules_overlap($schedule['start_date'], $schedule['end_date'], $banner_schedule['start_date'], $banner_schedule['end_date'])) {
+      continue;
+    }
+
     $pages = array_map('absint', (array) get_post_meta($banner_id, '_sfb_pages', true));
     $used_pages = array_merge($used_pages, $pages);
   }
@@ -417,6 +512,10 @@ function sfb_render_metabox($post)
   ]);
 
   foreach ($active_banners as $active_banner_id) {
+    if (!sfb_is_banner_in_publication_window($active_banner_id)) {
+      continue;
+    }
+
     $active_page_ids = array_filter(array_map('absint', (array) get_post_meta($active_banner_id, '_sfb_pages', true)));
 
     if (!$active_page_ids) {
@@ -515,6 +614,19 @@ function sfb_render_metabox($post)
         <option value="_blank" <?php selected($target, '_blank'); ?>><?php echo sfb_esc_html('Nueva ventana (_blank)'); ?></option>
       </select>
     </p>
+
+    <fieldset class="sfb-field sfb-schedule">
+      <legend><strong><?php echo sfb_esc_html('Programación de publicación'); ?></strong></legend>
+      <p class="description"><?php echo sfb_esc_html('Deja las fechas vacías para mantener el banner siempre visible mientras esté publicado.'); ?></p>
+      <label class="sfb-schedule__field" for="sfb_start_date">
+        <span><?php echo sfb_esc_html('Fecha de inicio'); ?></span>
+        <input type="date" id="sfb_start_date" name="sfb_start_date" value="<?php echo esc_attr($schedule['start_date']); ?>">
+      </label>
+      <label class="sfb-schedule__field" for="sfb_end_date">
+        <span><?php echo sfb_esc_html('Fecha de fin'); ?></span>
+        <input type="date" id="sfb_end_date" name="sfb_end_date" value="<?php echo esc_attr($schedule['end_date']); ?>">
+      </label>
+    </fieldset>
 
     <h4><?php echo sfb_esc_html('Páginas donde está activo un banner flotante'); ?></h4>
     <table class="widefat striped sfb-active-table">
@@ -618,13 +730,39 @@ add_action('save_post', function ($post_id) {
     update_post_meta($post_id, '_sfb_target', sfb_sanitize_target(wp_unslash($_POST['sfb_target'])));
   }
 
+  $start_date = isset($_POST['sfb_start_date']) ? sfb_sanitize_schedule_date(wp_unslash($_POST['sfb_start_date'])) : '';
+  update_post_meta($post_id, '_sfb_start_date', $start_date);
+
+  $end_date = isset($_POST['sfb_end_date']) ? sfb_sanitize_schedule_date(wp_unslash($_POST['sfb_end_date'])) : '';
+  update_post_meta($post_id, '_sfb_end_date', $end_date);
+
   if (isset($_POST['sfb_pages'])) {
     $pages = array_map('absint', (array) wp_unslash($_POST['sfb_pages']));
     $valid_pages = array_filter($pages, function ($page_id) {
       return get_post_type($page_id) === 'page';
     });
 
-    update_post_meta($post_id, '_sfb_pages', array_values($valid_pages));
+    $used_pages = [];
+    $banner_ids = get_posts([
+      'post_type' => 'sfb_banner',
+      'post_status' => 'publish',
+      'post__not_in' => [absint($post_id)],
+      'posts_per_page' => -1,
+      'fields' => 'ids',
+      'no_found_rows' => true
+    ]);
+
+    foreach ($banner_ids as $banner_id) {
+      $schedule = sfb_get_publication_schedule($banner_id);
+
+      if (!sfb_schedules_overlap($start_date, $end_date, $schedule['start_date'], $schedule['end_date'])) {
+        continue;
+      }
+
+      $used_pages = array_merge($used_pages, array_map('absint', (array) get_post_meta($banner_id, '_sfb_pages', true)));
+    }
+
+    update_post_meta($post_id, '_sfb_pages', array_values(array_diff($valid_pages, array_unique($used_pages))));
   } else {
     delete_post_meta($post_id, '_sfb_pages');
   }

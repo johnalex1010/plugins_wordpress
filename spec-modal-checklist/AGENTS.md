@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-modal-checklist.php`.
 - Text domain: `spec-modal-pro`.
 - CPT privado: `smp_modal`.
-- Versión documentada: 3.4.
+- Versión documentada: 3.5.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: modal promocional segmentado por página y rol.
 
@@ -22,6 +22,8 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
   - `_smp_enabled`
   - `_smp_delay`
   - `_smp_frequency`
+  - `_smp_start_date`
+  - `_smp_end_date`
   - `_smp_pages`
   - `_smp_cta_url`
   - `_smp_cta_target`
@@ -31,6 +33,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Mantener frecuencia `session` o `persistent` de 1 hora salvo SPEC contraria.
 - Mantener imagen obligatoria para publicar cuando el comportamiento documentado lo requiera.
 - Mantener target con allowlist `_self` y `_blank`.
+- Mantener programación opcional por fecha de inicio y fecha de fin, con fechas vacías como comportamiento siempre vigente cuando el modal esté publicado y activo.
 
 ## Código limpio local
 

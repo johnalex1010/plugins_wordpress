@@ -2,6 +2,10 @@
   width: 140px;
 }
 
+.column-shb_publication_schedule {
+  width: 180px;
+}
+
 .column-shb_target_pages {
   width: 32%;
 }
@@ -39,6 +43,13 @@
 .shb-field__select {
   display: block;
   margin-top: 6px;
+}
+
+.shb-schedule__field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 16px 0 0;
 }
 
 .shb-image-preview {
