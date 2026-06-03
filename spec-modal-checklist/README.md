@@ -14,6 +14,8 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Delay configurable.
 - Frecuencia `session` o `persistent` de 1 hora.
 - Programación opcional con fecha de inicio y fecha de fin.
+- Estado administrativo calculado por programación: sin fechas usa `Publicado` / `Borrador`; con fechas usa `Programado`, `Publicado` o `Borrador`.
+- Cambio automático a borrador cuando la fecha de fin ya está vencida.
 - URL y target para enlazar la imagen del modal.
 - Imagen obligatoria para publicar.
 - Columnas administrativas de estado, activo y páginas asignadas.
@@ -117,6 +119,7 @@ Validar en WordPress:
 - Confirmar que el selector muestra jerarquía de páginas cuando existen padres.
 - Revisar columnas administrativas.
 - Configurar fecha de inicio futura y fecha de fin vencida para confirmar que la vigencia controla el render.
+- Confirmar que un modal publicado con fecha de fin vencida pasa automáticamente a borrador en el administrador.
 - Verificar render frontend, cierre y frecuencia.
 
 ## Rollback

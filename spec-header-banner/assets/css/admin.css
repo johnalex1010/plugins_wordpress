@@ -27,6 +27,10 @@
   background: #b32d2e;
 }
 
+.shb-status-badge--scheduled {
+  background: #996800;
+}
+
 .shb-empty-column {
   color: #646970;
 }

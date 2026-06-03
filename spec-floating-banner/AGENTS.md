@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-floating-banner.php`.
 - Text domain: `spec-floating-banner`.
 - CPT privado: `sfb_banner`.
-- Versión documentada: 1.14.
+- Versión documentada: 1.15.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: banner flotante por página con cierre temporal.
 
@@ -35,6 +35,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Mantener ID del CTA opcional y sanitizado para seguimiento con GTM.
 - Mantener target con allowlist `_self` y `_blank`.
 - Mantener programación opcional por fecha de inicio y fecha de fin, con fechas vacías como comportamiento siempre vigente.
+- Mantener estado administrativo dependiente de programación y pasar automáticamente a borrador cuando la fecha de fin esté vencida.
 - Mantener bloqueo de páginas asignadas a banners publicados.
 - Mantener assets frontend cargados solo cuando exista banner aplicable.
 - No convertir el cierre temporal en persistencia permanente sin SPEC.

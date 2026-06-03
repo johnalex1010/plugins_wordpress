@@ -4,7 +4,7 @@
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
  * Description: Gestiona modales promocionales por página, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
- * Version: 3.5
+ * Version: 3.6
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -44,6 +44,8 @@ function smp_translate($text)
     'PÃ¡ginas del modal' => 'Modal pages',
     'Publicado' => 'Published',
     'No publicado' => 'Unpublished',
+    'Borrador' => 'Draft',
+    'Programado' => 'Scheduled',
     'Sí' => 'Yes',
     'SÃ­' => 'Yes',
     'No' => 'No',
@@ -118,7 +120,7 @@ function smp_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '3.5';
+  return file_exists($file) ? (string) filemtime($file) : '3.6';
 }
 
 function smp_get_page_hierarchy_label($page_id)
@@ -198,6 +200,63 @@ function smp_is_modal_in_publication_window($modal_id, $timestamp = null)
   return $timestamp >= $start_timestamp && $timestamp <= $end_timestamp;
 }
 
+function smp_has_publication_schedule($modal_id)
+{
+  $schedule = smp_get_publication_schedule($modal_id);
+
+  return $schedule['start_date'] !== '' || $schedule['end_date'] !== '';
+}
+
+function smp_is_publication_schedule_expired($modal_id, $timestamp = null)
+{
+  $timestamp = $timestamp ?: time();
+  $schedule = smp_get_publication_schedule($modal_id);
+
+  if (!$schedule['end_date']) {
+    return false;
+  }
+
+  return $timestamp > smp_get_schedule_timestamp($schedule['end_date'], 'end');
+}
+
+function smp_get_publication_status_badge($modal_id)
+{
+  $post_status = get_post_status($modal_id);
+
+  if ($post_status !== 'publish') {
+    return [
+      'class' => 'smp-status-badge--unpublished',
+      'label' => smp_translate('Borrador'),
+    ];
+  }
+
+  if (!smp_has_publication_schedule($modal_id)) {
+    return [
+      'class' => 'smp-status-badge--published',
+      'label' => smp_translate('Publicado'),
+    ];
+  }
+
+  if (smp_is_publication_schedule_expired($modal_id)) {
+    return [
+      'class' => 'smp-status-badge--unpublished',
+      'label' => smp_translate('Borrador'),
+    ];
+  }
+
+  if (!smp_is_modal_in_publication_window($modal_id)) {
+    return [
+      'class' => 'smp-status-badge--scheduled',
+      'label' => smp_translate('Programado'),
+    ];
+  }
+
+  return [
+    'class' => 'smp-status-badge--published',
+    'label' => smp_translate('Publicado'),
+  ];
+}
+
 function smp_schedules_overlap($first_start_date, $first_end_date, $second_start_date, $second_end_date)
 {
   $first_start = $first_start_date ? smp_get_schedule_timestamp($first_start_date, 'start') : 0;
@@ -223,6 +282,27 @@ function smp_register_cpt()
 }
 add_action('init', 'smp_register_cpt');
 
+add_action('admin_init', function () {
+  $modal_ids = get_posts([
+    'post_type' => 'smp_modal',
+    'post_status' => 'publish',
+    'posts_per_page' => -1,
+    'fields' => 'ids',
+    'no_found_rows' => true
+  ]);
+
+  foreach ($modal_ids as $modal_id) {
+    if (!smp_has_publication_schedule($modal_id) || !smp_is_publication_schedule_expired($modal_id)) {
+      continue;
+    }
+
+    wp_update_post([
+      'ID' => absint($modal_id),
+      'post_status' => 'draft',
+    ]);
+  }
+});
+
 /* =====================================================
    2. ADMIN COLUMNS
 ===================================================== */
@@ -245,11 +325,9 @@ add_filter('manage_smp_modal_posts_columns', function ($columns) {
 
 add_action('manage_smp_modal_posts_custom_column', function ($column, $post_id) {
   if ($column === 'smp_publication_status') {
-    $is_published = get_post_status($post_id) === 'publish';
-    $status_class = $is_published ? 'smp-status-badge--published' : 'smp-status-badge--unpublished';
-    $status_label = $is_published ? smp_translate('Publicado') : smp_translate('No publicado');
+    $status_badge = smp_get_publication_status_badge($post_id);
 
-    echo '<span class="smp-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
+    echo '<span class="smp-status-badge ' . esc_attr($status_badge['class']) . '">' . esc_html($status_badge['label']) . '</span>';
     return;
   }
 
@@ -651,6 +729,27 @@ function smp_save_meta($post_id)
 
 }
 add_action('save_post', 'smp_save_meta');
+
+add_filter('wp_insert_post_data', function ($data, $postarr) {
+  if (empty($data['post_type']) || $data['post_type'] !== 'smp_modal') {
+    return $data;
+  }
+
+  if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+    return $data;
+  }
+
+  $post_id = !empty($postarr['ID']) ? absint($postarr['ID']) : 0;
+  $end_date = isset($_POST['smp_end_date'])
+    ? smp_sanitize_schedule_date(wp_unslash($_POST['smp_end_date']))
+    : ($post_id ? smp_sanitize_schedule_date(get_post_meta($post_id, '_smp_end_date', true)) : '');
+
+  if (in_array($data['post_status'], ['publish', 'future'], true) && $end_date && time() > smp_get_schedule_timestamp($end_date, 'end')) {
+    $data['post_status'] = 'draft';
+  }
+
+  return $data;
+}, 10, 2);
 
 /* =====================================================
    6. MOTOR DE REGLAS

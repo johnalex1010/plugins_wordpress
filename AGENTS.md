@@ -28,9 +28,9 @@ Este repositorio contiene plugins personalizados para WordPress:
 
 Versiones vigentes documentadas:
 
-- `spec-header-banner`: 4.6.
-- `spec-floating-banner`: 1.14.
-- `spec-modal-checklist`: 3.5.
+- `spec-header-banner`: 4.7.
+- `spec-floating-banner`: 1.15.
+- `spec-modal-checklist`: 3.6.
 
 Cada plugin debe poder copiarse de forma independiente a `wp-content/plugins/`.
 

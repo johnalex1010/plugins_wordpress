@@ -28,6 +28,10 @@
   background: #b32d2e;
 }
 
+.smp-status-badge--scheduled {
+  background: #996800;
+}
+
 .smp-empty-column {
   color: #646970;
 }

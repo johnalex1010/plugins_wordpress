@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-header-banner.php`.
 - Text domain: `spec-header-banner`.
 - CPT privado: `shb_banner`.
-- Versión documentada: 4.6.
+- Versión documentada: 4.7.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: banner full width bajo breadcrumbs si existen o bajo el header como fallback.
 
@@ -31,6 +31,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Mantener enlace opcional con soporte para URL completa o anclas internas.
 - Mantener target con allowlist `_self` y `_blank`.
 - Mantener programación opcional por fecha de inicio y fecha de fin, con fechas vacías como comportamiento siempre vigente.
+- Mantener estado administrativo dependiente de programación y pasar automáticamente a borrador cuando la fecha de fin esté vencida.
 - No degradar el comportamiento independiente del plugin.
 
 ## Código limpio local

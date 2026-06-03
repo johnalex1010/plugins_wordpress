@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SPEC Header Banner 4.6\n"
+"Project-Id-Version: SPEC Header Banner 4.7\n"
 "Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
 "POT-Creation-Date: 2026-05-24 00:00+0000\n"
 "PO-Revision-Date: 2026-05-24 00:00+0000\n"
@@ -33,6 +33,12 @@ msgstr "Published"
 
 msgid "No publicado"
 msgstr "Unpublished"
+
+msgid "Borrador"
+msgstr "Draft"
+
+msgid "Programado"
+msgstr "Scheduled"
 
 msgid "Sin páginas asignadas"
 msgstr "No assigned pages"

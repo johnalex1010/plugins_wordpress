@@ -20,6 +20,8 @@ El plugin está pensado para administración interna: el CPT no es público, no 
 - ID opcional del CTA para configurar seguimiento de clics con GTM.
 - Target configurable: misma ventana o nueva ventana.
 - Programación opcional con fecha de inicio y fecha de fin.
+- Estado administrativo calculado por programación: sin fechas usa `Publicado` / `Borrador`; con fechas usa `Programado`, `Publicado` o `Borrador`.
+- Cambio automático a borrador cuando la fecha de fin ya está vencida.
 - Selección de páginas donde se mostrará cada banner.
 - Selector de páginas con ruta jerárquica cuando la página tiene padre.
 - Prevención de publicación si faltan los campos obligatorios según el tipo de banner.
@@ -163,6 +165,7 @@ También se recomienda validar en WordPress:
 - Enlaces opcionales con URL, `#` y anclas como `#formulario`.
 - Render frontend en una página asignada.
 - Render frontend respetando fecha de inicio futura y fecha de fin vencida.
+- Confirmar que un banner publicado con fecha de fin vencida pasa automáticamente a borrador en el administrador.
 - Render frontend de video con CTA visible debajo.
 - Cierre temporal del banner.
 - Target `_self` y `_blank`.

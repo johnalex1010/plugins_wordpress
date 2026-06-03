@@ -31,6 +31,10 @@
   background: #b32d2e;
 }
 
+.sfb-status-badge--scheduled {
+  background: #996800;
+}
+
 .sfb-empty-column {
   color: #646970;
 }

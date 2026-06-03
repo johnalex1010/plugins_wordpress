@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Floating Banner
  * Description: Gestiona banners flotantes por página con imagen o video, CTA, target configurable, cierre temporal y columnas administrativas de estado/asignación.
- * Version: 1.14
+ * Version: 1.15
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Text Domain: spec-floating-banner
@@ -63,6 +63,8 @@ function sfb_translate($text)
     'Target del enlace' => 'Link target',
     'Misma ventana (_self)' => 'Same window (_self)',
     'Nueva ventana (_blank)' => 'New window (_blank)',
+    'Borrador' => 'Draft',
+    'Programado' => 'Scheduled',
     'Páginas donde está activo un banner flotante' => 'Pages where a floating banner is active',
     'PÃ¡ginas donde estÃ¡ activo un banner flotante' => 'Pages where a floating banner is active',
     'Programación' => 'Schedule',
@@ -241,6 +243,63 @@ function sfb_is_banner_in_publication_window($banner_id, $timestamp = null)
   return $timestamp >= $start_timestamp && $timestamp <= $end_timestamp;
 }
 
+function sfb_has_publication_schedule($banner_id)
+{
+  $schedule = sfb_get_publication_schedule($banner_id);
+
+  return $schedule['start_date'] !== '' || $schedule['end_date'] !== '';
+}
+
+function sfb_is_publication_schedule_expired($banner_id, $timestamp = null)
+{
+  $timestamp = $timestamp ?: time();
+  $schedule = sfb_get_publication_schedule($banner_id);
+
+  if (!$schedule['end_date']) {
+    return false;
+  }
+
+  return $timestamp > sfb_get_schedule_timestamp($schedule['end_date'], 'end');
+}
+
+function sfb_get_publication_status_badge($banner_id)
+{
+  $post_status = get_post_status($banner_id);
+
+  if ($post_status !== 'publish') {
+    return [
+      'class' => 'sfb-status-badge--unpublished',
+      'label' => sfb_translate('Borrador'),
+    ];
+  }
+
+  if (!sfb_has_publication_schedule($banner_id)) {
+    return [
+      'class' => 'sfb-status-badge--published',
+      'label' => __('Publicado', 'spec-floating-banner'),
+    ];
+  }
+
+  if (sfb_is_publication_schedule_expired($banner_id)) {
+    return [
+      'class' => 'sfb-status-badge--unpublished',
+      'label' => sfb_translate('Borrador'),
+    ];
+  }
+
+  if (!sfb_is_banner_in_publication_window($banner_id)) {
+    return [
+      'class' => 'sfb-status-badge--scheduled',
+      'label' => sfb_translate('Programado'),
+    ];
+  }
+
+  return [
+    'class' => 'sfb-status-badge--published',
+    'label' => __('Publicado', 'spec-floating-banner'),
+  ];
+}
+
 function sfb_schedules_overlap($first_start_date, $first_end_date, $second_start_date, $second_end_date)
 {
   $first_start = $first_start_date ? sfb_get_schedule_timestamp($first_start_date, 'start') : 0;
@@ -262,6 +321,27 @@ add_action('init', function () {
     'menu_icon' => 'dashicons-format-image',
     'supports' => ['title']
   ]);
+});
+
+add_action('admin_init', function () {
+  $banner_ids = get_posts([
+    'post_type' => 'sfb_banner',
+    'post_status' => 'publish',
+    'posts_per_page' => -1,
+    'fields' => 'ids',
+    'no_found_rows' => true
+  ]);
+
+  foreach ($banner_ids as $banner_id) {
+    if (!sfb_has_publication_schedule($banner_id) || !sfb_is_publication_schedule_expired($banner_id)) {
+      continue;
+    }
+
+    wp_update_post([
+      'ID' => absint($banner_id),
+      'post_status' => 'draft',
+    ]);
+  }
 });
 
 /* =====================================================
@@ -298,11 +378,9 @@ add_action('manage_sfb_banner_posts_custom_column', function ($column, $post_id)
   }
 
   if ($column === 'sfb_publication_status') {
-    $is_published = get_post_status($post_id) === 'publish';
-    $status_class = $is_published ? 'sfb-status-badge--published' : 'sfb-status-badge--unpublished';
-    $status_label = $is_published ? __('Publicado', 'spec-floating-banner') : __('No publicado', 'spec-floating-banner');
+    $status_badge = sfb_get_publication_status_badge($post_id);
 
-    echo '<span class="sfb-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
+    echo '<span class="sfb-status-badge ' . esc_attr($status_badge['class']) . '">' . esc_html($status_badge['label']) . '</span>';
     return;
   }
 
@@ -362,7 +440,7 @@ function sfb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '1.14';
+  return file_exists($file) ? (string) filemtime($file) : '1.15';
 }
 
 function sfb_get_current_page_banners()
@@ -804,6 +882,14 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
     $link = sfb_sanitize_link_url(wp_unslash($_POST['sfb_link']));
   }
 
+  $start_date = isset($_POST['sfb_start_date'])
+    ? sfb_sanitize_schedule_date(wp_unslash($_POST['sfb_start_date']))
+    : ($post_id ? sfb_sanitize_schedule_date(get_post_meta($post_id, '_sfb_start_date', true)) : '');
+  $end_date = isset($_POST['sfb_end_date'])
+    ? sfb_sanitize_schedule_date(wp_unslash($_POST['sfb_end_date']))
+    : ($post_id ? sfb_sanitize_schedule_date(get_post_meta($post_id, '_sfb_end_date', true)) : '');
+  $schedule_is_expired = $end_date && time() > sfb_get_schedule_timestamp($end_date, 'end');
+
   $requires_publication = in_array($data['post_status'], ['publish', 'future'], true);
   $missing_required_fields = $media_type === 'video'
     ? (!$video_id || !sfb_is_valid_video_attachment($video_id) || !$cta_label)
@@ -815,6 +901,10 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
     if (is_admin()) {
       set_transient('sfb_required_fields_notice_' . get_current_user_id(), 1, 60);
     }
+  }
+
+  if ($requires_publication && $schedule_is_expired) {
+    $data['post_status'] = 'draft';
   }
 
   return $data;

@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Header Banner
  * Description: Gestiona múltiples banners full width por página y los ubica bajo breadcrumbs si existen o bajo el header como fallback, con imagen obligatoria, enlace opcional, target configurable y administración con buscador.
- * Version: 4.6
+ * Version: 4.7
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -43,6 +43,8 @@ function shb_translate($text)
     'PÃ¡ginas del banner' => 'Banner pages',
     'Publicado' => 'Published',
     'No publicado' => 'Unpublished',
+    'Borrador' => 'Draft',
+    'Programado' => 'Scheduled',
     'Sin páginas asignadas' => 'No assigned pages',
     'Sin pÃ¡ginas asignadas' => 'No assigned pages',
     'Página #%d' => 'Page #%d',
@@ -109,7 +111,7 @@ function shb_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '4.6';
+  return file_exists($file) ? (string) filemtime($file) : '4.7';
 }
 
 function shb_sanitize_link($link)
@@ -192,6 +194,63 @@ function shb_is_banner_in_publication_window($banner_id, $timestamp = null)
   return $timestamp >= $start_timestamp && $timestamp <= $end_timestamp;
 }
 
+function shb_has_publication_schedule($banner_id)
+{
+  $schedule = shb_get_publication_schedule($banner_id);
+
+  return $schedule['start_date'] !== '' || $schedule['end_date'] !== '';
+}
+
+function shb_is_publication_schedule_expired($banner_id, $timestamp = null)
+{
+  $timestamp = $timestamp ?: time();
+  $schedule = shb_get_publication_schedule($banner_id);
+
+  if (!$schedule['end_date']) {
+    return false;
+  }
+
+  return $timestamp > shb_get_schedule_timestamp($schedule['end_date'], 'end');
+}
+
+function shb_get_publication_status_badge($banner_id)
+{
+  $post_status = get_post_status($banner_id);
+
+  if ($post_status !== 'publish') {
+    return [
+      'class' => 'shb-status-badge--unpublished',
+      'label' => shb_translate('Borrador'),
+    ];
+  }
+
+  if (!shb_has_publication_schedule($banner_id)) {
+    return [
+      'class' => 'shb-status-badge--published',
+      'label' => shb_translate('Publicado'),
+    ];
+  }
+
+  if (shb_is_publication_schedule_expired($banner_id)) {
+    return [
+      'class' => 'shb-status-badge--unpublished',
+      'label' => shb_translate('Borrador'),
+    ];
+  }
+
+  if (!shb_is_banner_in_publication_window($banner_id)) {
+    return [
+      'class' => 'shb-status-badge--scheduled',
+      'label' => shb_translate('Programado'),
+    ];
+  }
+
+  return [
+    'class' => 'shb-status-badge--published',
+    'label' => shb_translate('Publicado'),
+  ];
+}
+
 function shb_schedules_overlap($first_start_date, $first_end_date, $second_start_date, $second_end_date)
 {
   $first_start = $first_start_date ? shb_get_schedule_timestamp($first_start_date, 'start') : 0;
@@ -241,6 +300,27 @@ add_action('init', function () {
     'menu_icon' => 'dashicons-format-image',
     'supports' => ['title']
   ]);
+});
+
+add_action('admin_init', function () {
+  $banner_ids = get_posts([
+    'post_type' => 'shb_banner',
+    'post_status' => 'publish',
+    'posts_per_page' => -1,
+    'fields' => 'ids',
+    'no_found_rows' => true
+  ]);
+
+  foreach ($banner_ids as $banner_id) {
+    if (!shb_has_publication_schedule($banner_id) || !shb_is_publication_schedule_expired($banner_id)) {
+      continue;
+    }
+
+    wp_update_post([
+      'ID' => absint($banner_id),
+      'post_status' => 'draft',
+    ]);
+  }
 });
 
 /* =====================================================
@@ -302,11 +382,9 @@ add_filter('manage_shb_banner_posts_columns', function ($columns) {
 
 add_action('manage_shb_banner_posts_custom_column', function ($column, $post_id) {
   if ($column === 'shb_publication_status') {
-    $is_published = get_post_status($post_id) === 'publish';
-    $status_class = $is_published ? 'shb-status-badge--published' : 'shb-status-badge--unpublished';
-    $status_label = $is_published ? shb_translate('Publicado') : shb_translate('No publicado');
+    $status_badge = shb_get_publication_status_badge($post_id);
 
-    echo '<span class="shb-status-badge ' . esc_attr($status_class) . '">' . esc_html($status_label) . '</span>';
+    echo '<span class="shb-status-badge ' . esc_attr($status_badge['class']) . '">' . esc_html($status_badge['label']) . '</span>';
     return;
   }
 
@@ -632,12 +710,24 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
     $image_id = absint(wp_unslash($_POST['shb_image_id']));
   }
 
+  $start_date = isset($_POST['shb_start_date'])
+    ? shb_sanitize_schedule_date(wp_unslash($_POST['shb_start_date']))
+    : ($post_id ? shb_sanitize_schedule_date(get_post_meta($post_id, '_shb_start_date', true)) : '');
+  $end_date = isset($_POST['shb_end_date'])
+    ? shb_sanitize_schedule_date(wp_unslash($_POST['shb_end_date']))
+    : ($post_id ? shb_sanitize_schedule_date(get_post_meta($post_id, '_shb_end_date', true)) : '');
+  $schedule_is_expired = $end_date && time() > shb_get_schedule_timestamp($end_date, 'end');
+
   if (in_array($data['post_status'], ['publish', 'future'], true) && !$image_id) {
     $data['post_status'] = 'draft';
 
     if (is_admin()) {
       set_transient('shb_required_fields_notice_' . get_current_user_id(), 1, 60);
     }
+  }
+
+  if (in_array($data['post_status'], ['publish', 'future'], true) && $schedule_is_expired) {
+    $data['post_status'] = 'draft';
   }
 
   return $data;
