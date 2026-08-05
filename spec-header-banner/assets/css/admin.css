@@ -49,6 +49,39 @@
   margin-top: 6px;
 }
 
+.shb-content-type {
+  border-bottom: 1px solid #dcdcde;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+}
+
+.shb-content-type__option {
+  display: inline-flex;
+  gap: 6px;
+  margin: 10px 18px 0 0;
+}
+
+.shb-content-panel.is-hidden {
+  display: none;
+}
+
+.shb-color-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.shb-color-fields__item {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shb-color-fields__item input {
+  height: 34px;
+  width: 64px;
+}
+
 .shb-schedule__field {
   display: inline-flex;
   flex-direction: column;

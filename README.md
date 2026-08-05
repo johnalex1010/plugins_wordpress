@@ -29,25 +29,27 @@ Evitar código difícil de entender: nombres ambiguos, funciones enormes, duplic
 
 | Plugin               | Carpeta                | Versión | Propósito                                                                                           |
 | -------------------- | ---------------------- | ------- | --------------------------------------------------------------------------------------------------- |
-| SPEC Header Banner   | `spec-header-banner`   | 4.7     | Banners full width por página, ubicados bajo breadcrumbs si existen o bajo el header como fallback. |
+| SPEC Header Banner   | `spec-header-banner`   | 4.7     | Banners full width por página, en formato imagen o cenefa de texto, ubicados bajo el header en home/front-page o bajo el contenedor externo de breadcrumbs cuando exista. |
 | SPEC Floating Banner | `spec-floating-banner` | 1.15    | Banners flotantes por página, con imagen o video, CTA, target, cierre temporal y programación.     |
 | SPEC Modal Pro       | `spec-modal-checklist` | 3.6     | Modales promocionales por página y rol, con imagen clickeable, frecuencia, estado y programación.  |
 
 ## SPEC Header Banner
 
-Plugin para crear múltiples banners de ancho completo. Cada banner se asigna a páginas específicas y una página asignada a un banner publicado queda bloqueada para otros banners, evitando duplicidad visual.
+Plugin para crear múltiples banners de ancho completo en formato imagen o cenefa de texto. Cada banner se asigna a páginas específicas y una página asignada a un banner publicado queda bloqueada para otros banners, evitando duplicidad visual.
 
 Características principales:
 
 - CPT privado `shb_banner`.
-- Imagen obligatoria.
-- Enlace opcional con soporte para URL completa o anclas como `#formulario_inscripcion`.
-- Target `_self` o `_blank`.
+- Tipo de contenido configurable: banner de imagen o cenefa de texto.
+- Imagen obligatoria para banners de imagen.
+- Texto, color de letra y color de fondo para cenefas de texto.
+- Enlace opcional con soporte para URL completa o anclas como `#formulario_inscripcion` en banners de imagen.
+- Target `_self` o `_blank` para banners de imagen.
 - Programación opcional con fecha de inicio y fecha de fin.
 - Estado administrativo dependiente de programación: `Programado`, `Publicado` o `Borrador`.
 - Checklist de páginas con buscador y ruta jerárquica padre/hija.
 - Columnas administrativas de estado y páginas asignadas.
-- Inserción bajo breadcrumbs si existen; si no, bajo el header.
+- Inserción bajo el header en home/front-page; en páginas internas, bajo el contenedor externo de breadcrumbs si existe, sin anidar el banner dentro del header ni de breadcrumbs.
 - Soporte de idioma inglés para textos administrativos y controles visibles.
 
 Documentación específica: [spec-header-banner/README.md](spec-header-banner/README.md)

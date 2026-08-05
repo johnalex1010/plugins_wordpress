@@ -4,10 +4,32 @@
   $(function () {
     var mediaFrame;
     var $form = $('#post');
-    var $notice = $('#shb_required_notice');
+    var $imageRequiredNotice = $('#shb_image_required_notice');
+    var $textRequiredNotice = $('#shb_text_required_notice');
+    var $contentTypeFields = $('input[name="shb_content_type"]');
+    var $contentPanels = $('[data-shb-content-panel]');
     var $pageSearch = $('#shb_page_search');
     var $pageItems = $('.shb-page-selector__item');
     var $pageEmpty = $('.shb-page-selector__empty');
+
+    function getSelectedContentType() {
+      return String($contentTypeFields.filter(':checked').val() || 'image');
+    }
+
+    function syncContentPanels() {
+      var selectedContentType = getSelectedContentType();
+
+      $contentPanels.each(function () {
+        var $panel = $(this);
+        var isActive = String($panel.data('shb-content-panel')) === selectedContentType;
+
+        $panel.toggleClass('is-hidden', !isActive);
+        $panel.attr('aria-hidden', isActive ? 'false' : 'true');
+      });
+
+      $imageRequiredNotice.hide();
+      $textRequiredNotice.hide();
+    }
 
     $('#shb_upload_image_button').on('click', function (event) {
       event.preventDefault();
@@ -38,22 +60,33 @@
 
         $('#shb_image_id').val(attachment.id);
         $('#shb_image_preview').empty().append(image);
-        $notice.hide();
+        $imageRequiredNotice.hide();
       });
 
       mediaFrame.open();
     });
 
     $form.on('submit', function (event) {
-      if (!$('#shb_image_id').val()) {
+      var selectedContentType = getSelectedContentType();
+
+      if (selectedContentType === 'image' && !$('#shb_image_id').val()) {
         event.preventDefault();
-        $notice.show();
+        $imageRequiredNotice.show();
         $('#shb_upload_image_button').focus();
+        return false;
+      }
+
+      if (selectedContentType === 'text' && !String($('#shb_text').val() || '').trim()) {
+        event.preventDefault();
+        $textRequiredNotice.show();
+        $('#shb_text').focus();
         return false;
       }
 
       return true;
     });
+
+    $contentTypeFields.on('change', syncContentPanels);
 
     $pageSearch.on('input', function () {
       var query = String($(this).val() || '').toLowerCase().trim();
@@ -73,5 +106,7 @@
 
       $pageEmpty.toggleClass('is-visible', visibleCount === 0);
     });
+
+    syncContentPanels();
   });
 })(jQuery);

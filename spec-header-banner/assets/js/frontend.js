@@ -1,9 +1,36 @@
 (function () {
   'use strict';
 
-  function findPlacementTarget() {
-    var breadcrumbSelectors = [
+  function isHomeOrFrontPage() {
+    return document.body.classList.contains('home') || document.body.classList.contains('front-page');
+  }
+
+  function findHeaderTarget() {
+    var headerSelectors = [
+      'body > header',
+      'header.site-header',
+      '#masthead',
+      '#header',
+      '.site-header',
+      '.main-header'
+    ];
+    var headerTarget = null;
+
+    headerSelectors.some(function (selector) {
+      headerTarget = document.querySelector(selector);
+      return Boolean(headerTarget);
+    });
+
+    return headerTarget;
+  }
+
+  function findBreadcrumbTarget() {
+    var breadcrumbContainerSelectors = [
+      '.breadcrumbs-header',
       '.breadcrumbs_header',
+      '.breadcrumb-header'
+    ];
+    var breadcrumbSelectors = [
       '.yoast-breadcrumb',
       '#breadcrumbs',
       '.breadcrumbs',
@@ -13,31 +40,37 @@
       'nav[aria-label="breadcrumb"]',
       'nav[aria-label="Breadcrumb"]'
     ];
-    var headerSelectors = [
-      'body > header',
-      'header.site-header',
-      '#masthead',
-      '#header',
-      '.site-header',
-      '.main-header'
-    ];
-    var target = null;
+    var breadcrumbTarget = null;
 
-    breadcrumbSelectors.some(function (selector) {
-      target = document.querySelector(selector);
-      return Boolean(target);
+    breadcrumbContainerSelectors.some(function (selector) {
+      breadcrumbTarget = document.querySelector(selector);
+      return Boolean(breadcrumbTarget);
     });
 
-    if (target) {
-      return target;
+    if (breadcrumbTarget) {
+      return breadcrumbTarget;
     }
 
-    headerSelectors.some(function (selector) {
-      target = document.querySelector(selector);
-      return Boolean(target);
+    breadcrumbSelectors.some(function (selector) {
+      var breadcrumbElement = document.querySelector(selector);
+
+      if (!breadcrumbElement) {
+        return false;
+      }
+
+      breadcrumbTarget = breadcrumbElement.closest(breadcrumbContainerSelectors.join(', ')) || breadcrumbElement;
+      return true;
     });
 
-    return target;
+    return breadcrumbTarget;
+  }
+
+  function findPlacementTarget() {
+    if (isHomeOrFrontPage()) {
+      return findHeaderTarget();
+    }
+
+    return findBreadcrumbTarget() || findHeaderTarget();
   }
 
   function placeBanners() {

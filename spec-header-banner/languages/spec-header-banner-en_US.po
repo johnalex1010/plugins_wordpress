@@ -55,11 +55,26 @@ msgstr "Use Image"
 msgid "Configuración del Banner"
 msgstr "Banner Settings"
 
+msgid "Tipo de contenido"
+msgstr "Content type"
+
+msgid "Banner de imagen"
+msgstr "Image banner"
+
+msgid "Cenefa de texto"
+msgstr "Text ribbon"
+
 msgid "La imagen es obligatoria para publicar el banner."
 msgstr "An image is required to publish the banner."
 
 msgid "Selecciona una imagen antes de guardar el banner."
 msgstr "Select an image before saving the banner."
+
+msgid "El texto es obligatorio para publicar la cenefa."
+msgstr "Text is required to publish the ribbon."
+
+msgid "Escribe el texto antes de guardar la cenefa."
+msgstr "Enter the text before saving the ribbon."
 
 msgid "Enlace del banner"
 msgstr "Banner link"
@@ -78,6 +93,18 @@ msgstr "Same window (_self)"
 
 msgid "Nueva ventana (_blank)"
 msgstr "New window (_blank)"
+
+msgid "Texto de la cenefa"
+msgstr "Ribbon text"
+
+msgid "Ejemplo: ¡Este programa tiene un descuento de 35%!"
+msgstr "Example: This program has a 35% discount!"
+
+msgid "Color de letra"
+msgstr "Text color"
+
+msgid "Color de fondo"
+msgstr "Background color"
 
 msgid "Páginas"
 msgstr "Pages"

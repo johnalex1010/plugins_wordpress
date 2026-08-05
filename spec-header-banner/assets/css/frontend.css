@@ -1,14 +1,36 @@
 .shb-header-banner {
-  display: block;
-  width: 100%;
+	display: block;
+	width: 100%;
 }
 
 .shb-header-banner a {
-  display: block;
+	display: block;
 }
 
 .shb-header-banner__image {
-  display: block;
-  height: auto;
-  width: 100%;
+	display: block;
+	height: auto;
+	width: 100%;
+}
+
+.shb-header-banner--text {
+	background: var(--shb-background-color, #00529b);
+	color: var(--shb-text-color, #ffffff);
+	text-align: center;
+}
+
+.shb-header-banner__text {
+	color: inherit;
+	font-size: clamp(0.875rem, 1.8vw, 1rem);
+	/* font-weight: 600;
+  line-height: 1.35; */
+	margin: 0 auto;
+	max-width: 1180px;
+	padding: 10px 20px;
+}
+
+@media (max-width: 600px) {
+	.shb-header-banner__text {
+		padding: 10px 14px;
+	}
 }

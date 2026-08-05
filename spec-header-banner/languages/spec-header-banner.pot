@@ -50,10 +50,25 @@ msgstr ""
 msgid "Configuración del Banner"
 msgstr ""
 
+msgid "Tipo de contenido"
+msgstr ""
+
+msgid "Banner de imagen"
+msgstr ""
+
+msgid "Cenefa de texto"
+msgstr ""
+
 msgid "La imagen es obligatoria para publicar el banner."
 msgstr ""
 
 msgid "Selecciona una imagen antes de guardar el banner."
+msgstr ""
+
+msgid "El texto es obligatorio para publicar la cenefa."
+msgstr ""
+
+msgid "Escribe el texto antes de guardar la cenefa."
 msgstr ""
 
 msgid "Enlace del banner"
@@ -72,6 +87,18 @@ msgid "Misma ventana (_self)"
 msgstr ""
 
 msgid "Nueva ventana (_blank)"
+msgstr ""
+
+msgid "Texto de la cenefa"
+msgstr ""
+
+msgid "Ejemplo: ¡Este programa tiene un descuento de 35%!"
+msgstr ""
+
+msgid "Color de letra"
+msgstr ""
+
+msgid "Color de fondo"
 msgstr ""
 
 msgid "Páginas"

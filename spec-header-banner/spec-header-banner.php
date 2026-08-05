@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SPEC Header Banner
  * Description: Gestiona múltiples banners full width por página y los ubica bajo breadcrumbs si existen o bajo el header como fallback, con imagen obligatoria, enlace opcional, target configurable y administración con buscador.
- * Version: 4.7
+ * Version: 4.8
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -53,14 +53,23 @@ function shb_translate($text)
     'Usar Imagen' => 'Use Image',
     'Configuración del Banner' => 'Banner Settings',
     'ConfiguraciÃ³n del Banner' => 'Banner Settings',
+    'Tipo de contenido' => 'Content type',
+    'Banner de imagen' => 'Image banner',
+    'Cenefa de texto' => 'Text ribbon',
     'La imagen es obligatoria para publicar el banner.' => 'An image is required to publish the banner.',
     'Selecciona una imagen antes de guardar el banner.' => 'Select an image before saving the banner.',
+    'El texto es obligatorio para publicar la cenefa.' => 'Text is required to publish the ribbon.',
+    'Escribe el texto antes de guardar la cenefa.' => 'Enter the text before saving the ribbon.',
     'Enlace del banner' => 'Banner link',
     'https://... o #seccion' => 'https://... or #section',
     'Acepta URLs completas o anclas internas como #formulario_inscripcion.' => 'Accepts full URLs or internal anchors such as #formulario_inscripcion.',
     'Target del enlace' => 'Link target',
     'Misma ventana (_self)' => 'Same window (_self)',
     'Nueva ventana (_blank)' => 'New window (_blank)',
+    'Texto de la cenefa' => 'Ribbon text',
+    'Ejemplo: ¡Este programa tiene un descuento de 35%!' => 'Example: This program has a 35% discount!',
+    'Color de letra' => 'Text color',
+    'Color de fondo' => 'Background color',
     'Páginas' => 'Pages',
     'PÃ¡ginas' => 'Pages',
     'Buscar páginas' => 'Search pages',
@@ -134,6 +143,29 @@ function shb_sanitize_target($target)
   $target = sanitize_key($target);
 
   return in_array($target, ['_self', '_blank'], true) ? $target : '_self';
+}
+
+function shb_sanitize_content_type($content_type)
+{
+  $content_type = sanitize_key($content_type);
+
+  return in_array($content_type, ['image', 'text'], true) ? $content_type : 'image';
+}
+
+function shb_sanitize_banner_text($text)
+{
+  return trim(sanitize_text_field($text));
+}
+
+function shb_sanitize_color($color, $fallback)
+{
+  $color = trim(sanitize_text_field($color));
+
+  if (preg_match('/^#[A-Fa-f0-9]{6}$/', $color)) {
+    return strtolower($color);
+  }
+
+  return $fallback;
 }
 
 function shb_sanitize_pages($pages)
@@ -552,9 +584,13 @@ function shb_get_active_banners_with_pages()
 
 function shb_render_metabox($post)
 {
+  $content_type = shb_sanitize_content_type(get_post_meta($post->ID, '_shb_content_type', true));
   $image_id = absint(get_post_meta($post->ID, '_shb_image_id', true));
   $link = get_post_meta($post->ID, '_shb_link', true);
   $target = shb_sanitize_target(get_post_meta($post->ID, '_shb_target', true));
+  $banner_text = shb_sanitize_banner_text(get_post_meta($post->ID, '_shb_text', true));
+  $text_color = shb_sanitize_color(get_post_meta($post->ID, '_shb_text_color', true), '#ffffff');
+  $background_color = shb_sanitize_color(get_post_meta($post->ID, '_shb_background_color', true), '#00529b');
   $selected_pages = shb_sanitize_pages(get_post_meta($post->ID, '_shb_pages', true));
   $schedule = shb_get_publication_schedule($post->ID);
   $used_pages = shb_get_used_pages_by_banners($post->ID, $schedule['start_date'], $schedule['end_date']);
@@ -563,33 +599,67 @@ function shb_render_metabox($post)
   wp_nonce_field('shb_save_banner', 'shb_nonce');
 ?>
   <div class="shb-admin">
-    <button type="button" class="button" id="shb_upload_image_button"><?php echo shb_esc_html('Seleccionar Imagen'); ?></button>
-    <input type="hidden" id="shb_image_id" name="shb_image_id" value="<?php echo esc_attr($image_id); ?>">
-    <p class="description"><?php echo shb_esc_html('La imagen es obligatoria para publicar el banner.'); ?></p>
-    <div id="shb_required_notice" class="notice notice-error shb-required-notice">
-      <p><?php echo shb_esc_html('Selecciona una imagen antes de guardar el banner.'); ?></p>
-    </div>
-    <div id="shb_image_preview" class="shb-image-preview">
-      <?php
-      if ($image_id) {
-        echo wp_kses_post(wp_get_attachment_image($image_id, 'large'));
-      }
-      ?>
+    <fieldset class="shb-field shb-content-type">
+      <legend><strong><?php echo shb_esc_html('Tipo de contenido'); ?></strong></legend>
+      <label class="shb-content-type__option">
+        <input type="radio" name="shb_content_type" value="image" <?php checked($content_type, 'image'); ?>>
+        <span><?php echo shb_esc_html('Banner de imagen'); ?></span>
+      </label>
+      <label class="shb-content-type__option">
+        <input type="radio" name="shb_content_type" value="text" <?php checked($content_type, 'text'); ?>>
+        <span><?php echo shb_esc_html('Cenefa de texto'); ?></span>
+      </label>
+    </fieldset>
+
+    <div class="shb-content-panel<?php echo $content_type === 'image' ? '' : ' is-hidden'; ?>" data-shb-content-panel="image" aria-hidden="<?php echo $content_type === 'image' ? 'false' : 'true'; ?>">
+      <button type="button" class="button" id="shb_upload_image_button"><?php echo shb_esc_html('Seleccionar Imagen'); ?></button>
+      <input type="hidden" id="shb_image_id" name="shb_image_id" value="<?php echo esc_attr($image_id); ?>">
+      <p class="description"><?php echo shb_esc_html('La imagen es obligatoria para publicar el banner.'); ?></p>
+      <div id="shb_image_required_notice" class="notice notice-error shb-required-notice">
+        <p><?php echo shb_esc_html('Selecciona una imagen antes de guardar el banner.'); ?></p>
+      </div>
+      <div id="shb_image_preview" class="shb-image-preview">
+        <?php
+        if ($image_id) {
+          echo wp_kses_post(wp_get_attachment_image($image_id, 'large'));
+        }
+        ?>
+      </div>
+
+      <p class="shb-field">
+        <label for="shb_link"><strong><?php echo shb_esc_html('Enlace del banner'); ?></strong></label>
+        <input type="text" id="shb_link" name="shb_link" class="shb-field__control" value="<?php echo esc_attr($link); ?>" placeholder="<?php echo shb_esc_attr('https://... o #seccion'); ?>">
+        <span class="description"><?php echo shb_esc_html('Acepta URLs completas o anclas internas como #formulario_inscripcion.'); ?></span>
+      </p>
+
+      <p class="shb-field">
+        <label for="shb_target"><strong><?php echo shb_esc_html('Target del enlace'); ?></strong></label>
+        <select name="shb_target" id="shb_target" class="shb-field__select">
+          <option value="_self" <?php selected($target, '_self'); ?>><?php echo shb_esc_html('Misma ventana (_self)'); ?></option>
+          <option value="_blank" <?php selected($target, '_blank'); ?>><?php echo shb_esc_html('Nueva ventana (_blank)'); ?></option>
+        </select>
+      </p>
     </div>
 
-    <p class="shb-field">
-      <label for="shb_link"><strong><?php echo shb_esc_html('Enlace del banner'); ?></strong></label>
-      <input type="text" id="shb_link" name="shb_link" class="shb-field__control" value="<?php echo esc_attr($link); ?>" placeholder="<?php echo shb_esc_attr('https://... o #seccion'); ?>">
-      <span class="description"><?php echo shb_esc_html('Acepta URLs completas o anclas internas como #formulario_inscripcion.'); ?></span>
-    </p>
-
-    <p class="shb-field">
-      <label for="shb_target"><strong><?php echo shb_esc_html('Target del enlace'); ?></strong></label>
-      <select name="shb_target" id="shb_target" class="shb-field__select">
-        <option value="_self" <?php selected($target, '_self'); ?>><?php echo shb_esc_html('Misma ventana (_self)'); ?></option>
-        <option value="_blank" <?php selected($target, '_blank'); ?>><?php echo shb_esc_html('Nueva ventana (_blank)'); ?></option>
-      </select>
-    </p>
+    <div class="shb-content-panel<?php echo $content_type === 'text' ? '' : ' is-hidden'; ?>" data-shb-content-panel="text" aria-hidden="<?php echo $content_type === 'text' ? 'false' : 'true'; ?>">
+      <p class="shb-field">
+        <label for="shb_text"><strong><?php echo shb_esc_html('Texto de la cenefa'); ?></strong></label>
+        <input type="text" id="shb_text" name="shb_text" class="shb-field__control" value="<?php echo esc_attr($banner_text); ?>" placeholder="<?php echo shb_esc_attr('Ejemplo: ¡Este programa tiene un descuento de 35%!'); ?>">
+      </p>
+      <div id="shb_text_required_notice" class="notice notice-error shb-required-notice">
+        <p><?php echo shb_esc_html('Escribe el texto antes de guardar la cenefa.'); ?></p>
+      </div>
+      <p class="shb-field shb-color-fields">
+        <label class="shb-color-fields__item" for="shb_text_color">
+          <strong><?php echo shb_esc_html('Color de letra'); ?></strong>
+          <input type="color" id="shb_text_color" name="shb_text_color" value="<?php echo esc_attr($text_color); ?>">
+        </label>
+        <label class="shb-color-fields__item" for="shb_background_color">
+          <strong><?php echo shb_esc_html('Color de fondo'); ?></strong>
+          <input type="color" id="shb_background_color" name="shb_background_color" value="<?php echo esc_attr($background_color); ?>">
+        </label>
+      </p>
+    </div>
 
     <fieldset class="shb-field shb-schedule">
       <legend><strong><?php echo shb_esc_html('Programación de publicación'); ?></strong></legend>
@@ -673,6 +743,9 @@ add_action('save_post', function ($post_id) {
   if (!current_user_can('edit_post', $post_id)) return;
   if (!isset($_POST['shb_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['shb_nonce'])), 'shb_save_banner')) return;
 
+  $content_type = isset($_POST['shb_content_type']) ? shb_sanitize_content_type(wp_unslash($_POST['shb_content_type'])) : 'image';
+  update_post_meta($post_id, '_shb_content_type', $content_type);
+
   $image_id = isset($_POST['shb_image_id']) ? absint(wp_unslash($_POST['shb_image_id'])) : 0;
   update_post_meta($post_id, '_shb_image_id', $image_id);
 
@@ -681,6 +754,15 @@ add_action('save_post', function ($post_id) {
 
   $target = isset($_POST['shb_target']) ? shb_sanitize_target(wp_unslash($_POST['shb_target'])) : '_self';
   update_post_meta($post_id, '_shb_target', $target);
+
+  $banner_text = isset($_POST['shb_text']) ? shb_sanitize_banner_text(wp_unslash($_POST['shb_text'])) : '';
+  update_post_meta($post_id, '_shb_text', $banner_text);
+
+  $text_color = isset($_POST['shb_text_color']) ? shb_sanitize_color(wp_unslash($_POST['shb_text_color']), '#ffffff') : '#ffffff';
+  update_post_meta($post_id, '_shb_text_color', $text_color);
+
+  $background_color = isset($_POST['shb_background_color']) ? shb_sanitize_color(wp_unslash($_POST['shb_background_color']), '#00529b') : '#00529b';
+  update_post_meta($post_id, '_shb_background_color', $background_color);
 
   $start_date = isset($_POST['shb_start_date']) ? shb_sanitize_schedule_date(wp_unslash($_POST['shb_start_date'])) : '';
   update_post_meta($post_id, '_shb_start_date', $start_date);
@@ -704,10 +786,20 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
   }
 
   $post_id = !empty($postarr['ID']) ? absint($postarr['ID']) : 0;
+  $content_type = $post_id ? shb_sanitize_content_type(get_post_meta($post_id, '_shb_content_type', true)) : 'image';
   $image_id = $post_id ? absint(get_post_meta($post_id, '_shb_image_id', true)) : 0;
+  $banner_text = $post_id ? shb_sanitize_banner_text(get_post_meta($post_id, '_shb_text', true)) : '';
+
+  if (isset($_POST['shb_content_type'])) {
+    $content_type = shb_sanitize_content_type(wp_unslash($_POST['shb_content_type']));
+  }
 
   if (isset($_POST['shb_image_id'])) {
     $image_id = absint(wp_unslash($_POST['shb_image_id']));
+  }
+
+  if (isset($_POST['shb_text'])) {
+    $banner_text = shb_sanitize_banner_text(wp_unslash($_POST['shb_text']));
   }
 
   $start_date = isset($_POST['shb_start_date'])
@@ -718,11 +810,19 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
     : ($post_id ? shb_sanitize_schedule_date(get_post_meta($post_id, '_shb_end_date', true)) : '');
   $schedule_is_expired = $end_date && time() > shb_get_schedule_timestamp($end_date, 'end');
 
-  if (in_array($data['post_status'], ['publish', 'future'], true) && !$image_id) {
+  if (in_array($data['post_status'], ['publish', 'future'], true) && $content_type === 'image' && !$image_id) {
     $data['post_status'] = 'draft';
 
     if (is_admin()) {
-      set_transient('shb_required_fields_notice_' . get_current_user_id(), 1, 60);
+      set_transient('shb_required_fields_notice_' . get_current_user_id(), 'image', 60);
+    }
+  }
+
+  if (in_array($data['post_status'], ['publish', 'future'], true) && $content_type === 'text' && $banner_text === '') {
+    $data['post_status'] = 'draft';
+
+    if (is_admin()) {
+      set_transient('shb_required_fields_notice_' . get_current_user_id(), 'text', 60);
     }
   }
 
@@ -735,17 +835,21 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
 
 add_action('admin_notices', function () {
   $notice_key = 'shb_required_fields_notice_' . get_current_user_id();
+  $notice_type = get_transient($notice_key);
 
-  if (!get_transient($notice_key)) {
+  if (!$notice_type) {
     return;
   }
 
   delete_transient($notice_key);
+  $notice_text = $notice_type === 'text'
+    ? 'El texto es obligatorio para publicar la cenefa.'
+    : 'El banner quedó como borrador porque la imagen es obligatoria para publicarlo.';
 ?>
   <div class="notice notice-error is-dismissible">
-    <p><?php echo shb_esc_html('El banner quedó como borrador porque la imagen es obligatoria para publicarlo.'); ?></p>
+    <p><?php echo shb_esc_html($notice_text); ?></p>
   </div>
-<?php
+  <?php
 });
 
 /* =====================================================
@@ -843,7 +947,25 @@ function shb_render_header_banners()
   $rendered = true;
 
   foreach ($banner_ids as $banner_id) {
+    $content_type = shb_sanitize_content_type(get_post_meta($banner_id, '_shb_content_type', true));
     $image_id = absint(get_post_meta($banner_id, '_shb_image_id', true));
+
+    if ($content_type === 'text') {
+      $banner_text = shb_sanitize_banner_text(get_post_meta($banner_id, '_shb_text', true));
+
+      if ($banner_text === '') {
+        continue;
+      }
+
+      $text_color = shb_sanitize_color(get_post_meta($banner_id, '_shb_text_color', true), '#ffffff');
+      $background_color = shb_sanitize_color(get_post_meta($banner_id, '_shb_background_color', true), '#00529b');
+  ?>
+      <div id="shb-header-banner-<?php echo esc_attr($banner_id); ?>" class="shb-header-banner shb-header-banner--text" style="--shb-text-color: <?php echo esc_attr($text_color); ?>; --shb-background-color: <?php echo esc_attr($background_color); ?>;" data-shb-header-banner>
+        <p class="shb-header-banner__text"><?php echo esc_html($banner_text); ?></p>
+      </div>
+    <?php
+      continue;
+    }
 
     if (!$image_id) {
       continue;
@@ -862,10 +984,10 @@ function shb_render_header_banners()
     $link = esc_url(get_post_meta($banner_id, '_shb_link', true));
     $target = shb_sanitize_target(get_post_meta($banner_id, '_shb_target', true));
     $rel = $target === '_blank' ? 'noopener noreferrer' : '';
-?>
-    <div id="shb-header-banner-<?php echo esc_attr($banner_id); ?>" class="shb-header-banner" data-shb-header-banner>
+    ?>
+    <div id="shb-header-banner-<?php echo esc_attr($banner_id); ?>" class="shb-header-banner shb-header-banner--image" data-shb-header-banner>
       <?php if ($link) : ?>
-        <a href="<?php echo esc_url($link); ?>" target="<?php echo esc_attr($target); ?>"<?php echo $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>>
+        <a href="<?php echo esc_url($link); ?>" target="<?php echo esc_attr($target); ?>" <?php echo $rel ? ' rel="' . esc_attr($rel) . '"' : ''; ?>>
           <?php echo wp_kses_post($image_html); ?>
         </a>
       <?php else : ?>
