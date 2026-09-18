@@ -17,6 +17,7 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Estado administrativo calculado por programación: sin fechas usa `Publicado` / `Borrador`; con fechas usa `Programado`, `Publicado` o `Borrador`.
 - Cambio automático a borrador cuando la fecha de fin ya está vencida.
 - URL y target para enlazar la imagen del modal.
+- ID opcional para seguimiento en Tag Manager sobre el enlace de la imagen.
 - Imagen obligatoria para publicar.
 - Columnas administrativas de estado, activo y páginas asignadas.
 - Tabla informativa de páginas donde hay modales activos.
@@ -44,7 +45,7 @@ Sube las imágenes de referencia en `docs/images/` usando estos nombres para que
 - Bloqueo de acceso directo con `ABSPATH`.
 - Nonce en guardado de metabox.
 - Validación de permisos con `current_user_can()`.
-- Sanitización con `absint()`, `sanitize_key()`, `sanitize_text_field()` y `esc_url_raw()`.
+- Sanitización con `absint()`, `sanitize_key()`, `sanitize_html_class()`, `sanitize_text_field()` y `esc_url_raw()`.
 - Allowlists para frecuencia, target y modo de imagen.
 - Validación de páginas tipo `page`.
 - Escape de salida con `esc_html()`, `esc_attr()`, `esc_url()` y `wp_kses_post()`.
@@ -115,6 +116,7 @@ Validar en WordPress:
 - Crear y editar modal.
 - Seleccionar imagen.
 - Guardar URL y target.
+- Guardar ID Tag Manager y confirmar que se renderiza como `id` del enlace cuando existe URL.
 - Asignar páginas.
 - Confirmar que el selector muestra jerarquía de páginas cuando existen padres.
 - Revisar columnas administrativas.
@@ -133,5 +135,6 @@ Restaurar `spec-modal-checklist.php`, los archivos en `assets/` y la carpeta `la
 - `_smp_end_date`
 - `_smp_pages`
 - `_smp_cta_url`
+- `_smp_cta_id`
 - `_smp_cta_target`
 - `_smp_image_id`

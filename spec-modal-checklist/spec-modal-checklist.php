@@ -89,6 +89,7 @@ function smp_translate($text)
     'Modal #%d' => 'Modal #%d',
     'URL del Botón' => 'Button URL',
     'URL del BotÃ³n' => 'Button URL',
+    'ID Tag Manager' => 'Tag Manager ID',
     'Target' => 'Target',
     'Misma pestaña' => 'Same tab',
     'Misma pestaÃ±a' => 'Same tab',
@@ -550,6 +551,7 @@ function smp_meta_callback($post)
   $frequency = get_post_meta($post->ID, '_smp_frequency', true);
   $frequency = in_array($frequency, ['session', 'persistent'], true) ? $frequency : 'session';
   $cta_url = get_post_meta($post->ID, '_smp_cta_url', true);
+  $cta_id = get_post_meta($post->ID, '_smp_cta_id', true);
   $cta_target = get_post_meta($post->ID, '_smp_cta_target', true);
   $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
   $image_id = absint(get_post_meta($post->ID, '_smp_image_id', true));
@@ -659,6 +661,11 @@ function smp_meta_callback($post)
     </p>
 
     <p class="smp-field">
+      <label for="smp_cta_id"><strong><?php echo smp_esc_html('ID Tag Manager'); ?></strong></label>
+      <input type="text" name="smp_cta_id" id="smp_cta_id" class="smp-field__control" value="<?php echo esc_attr($cta_id); ?>">
+    </p>
+
+    <p class="smp-field">
       <label for="smp_cta_target"><strong><?php echo smp_esc_html('Target'); ?></strong></label>
       <select name="smp_cta_target" id="smp_cta_target" class="smp-field__select">
         <option value="_self" <?php selected($cta_target, '_self'); ?>><?php echo smp_esc_html('Misma pestaña'); ?></option>
@@ -719,6 +726,9 @@ function smp_save_meta($post_id)
 
   $cta_url = isset($_POST['smp_cta_url']) ? esc_url_raw(wp_unslash($_POST['smp_cta_url'])) : '';
   update_post_meta($post_id, '_smp_cta_url', $cta_url);
+
+  $cta_id = isset($_POST['smp_cta_id']) ? sanitize_html_class(wp_unslash($_POST['smp_cta_id'])) : '';
+  update_post_meta($post_id, '_smp_cta_id', $cta_id);
 
   $cta_target = isset($_POST['smp_cta_target']) ? sanitize_key(wp_unslash($_POST['smp_cta_target'])) : '_self';
   $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
@@ -871,6 +881,7 @@ function smp_render_modals()
     $frequency = get_post_meta($modal_id, '_smp_frequency', true);
     $frequency = in_array($frequency, ['session', 'persistent'], true) ? $frequency : 'session';
     $cta_url = esc_url(get_post_meta($modal_id, '_smp_cta_url', true));
+    $cta_id = sanitize_html_class(get_post_meta($modal_id, '_smp_cta_id', true));
     $cta_target = get_post_meta($modal_id, '_smp_cta_target', true);
     $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
     $cta_rel = $cta_target === '_blank' ? 'noopener noreferrer' : '';
@@ -888,7 +899,7 @@ function smp_render_modals()
         <?php if ($image_html) : ?>
           <div class="smp-image-wrapper">
             <?php if ($cta_url) : ?>
-              <a href="<?php echo esc_url($cta_url); ?>" target="<?php echo esc_attr($cta_target); ?>"<?php echo $cta_rel ? ' rel="' . esc_attr($cta_rel) . '"' : ''; ?>>
+              <a href="<?php echo esc_url($cta_url); ?>" target="<?php echo esc_attr($cta_target); ?>"<?php echo $cta_rel ? ' rel="' . esc_attr($cta_rel) . '"' : ''; ?><?php echo $cta_id ? ' id="' . esc_attr($cta_id) . '"' : ''; ?>>
                 <?php echo wp_kses_post($image_html); ?>
               </a>
             <?php else : ?>

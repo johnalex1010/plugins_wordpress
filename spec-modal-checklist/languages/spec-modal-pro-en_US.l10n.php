@@ -39,6 +39,7 @@ return [
       'No hay modales activos con páginas asignadas.' => ['There are no active modals with assigned pages.'],
       'Modal #%d' => ['Modal #%d'],
       'URL del Botón' => ['Button URL'],
+      'ID Tag Manager' => ['Tag Manager ID'],
       'Target' => ['Target'],
       'Misma pestaña' => ['Same tab'],
       'Nueva pestaña' => ['New tab'],

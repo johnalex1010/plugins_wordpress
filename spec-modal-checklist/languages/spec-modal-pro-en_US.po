@@ -130,6 +130,9 @@ msgstr "Modal #%d"
 msgid "URL del Botón"
 msgstr "Button URL"
 
+msgid "ID Tag Manager"
+msgstr "Tag Manager ID"
+
 msgid "Target"
 msgstr "Target"
 
