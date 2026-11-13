@@ -2,7 +2,7 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: SPEC Modal Pro 3.6\n"
+"Project-Id-Version: SPEC Modal Pro 3.7\n"
 "Report-Msgid-Bugs-To: https://virtual.uniminuto.edu/\n"
 "POT-Creation-Date: 2026-05-24 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -141,4 +141,43 @@ msgid "Imagen del Modal"
 msgstr ""
 
 msgid "Cerrar modal"
+msgstr ""
+
+msgid "Tipo de contenido"
+msgstr ""
+
+msgid "Imagen"
+msgstr ""
+
+msgid "Video MP4/WebM"
+msgstr ""
+
+msgid "Video de YouTube"
+msgstr ""
+
+msgid "Video del Modal"
+msgstr ""
+
+msgid "Seleccionar Video"
+msgstr ""
+
+msgid "Usar Video"
+msgstr ""
+
+msgid "Formatos permitidos: MP4 y WebM."
+msgstr ""
+
+msgid "URL de YouTube"
+msgstr ""
+
+msgid "Acepta enlaces de youtube.com, youtu.be y YouTube Shorts."
+msgstr ""
+
+msgid "Texto del botón"
+msgstr ""
+
+msgid "Más información"
+msgstr ""
+
+msgid "Con imagen, la URL enlaza la imagen. Con video o YouTube, se muestra un botón debajo del video con esta URL y el ID Tag Manager."
 msgstr ""

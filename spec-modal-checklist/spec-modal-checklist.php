@@ -3,8 +3,8 @@
 /**
  * Plugin Name: SPEC Modal Pro
  * Plugin URI: https://virtual.uniminuto.edu/
- * Description: Gestiona modales promocionales por página, con imagen clickeable, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
- * Version: 3.6
+ * Description: Gestiona modales promocionales por página, con imagen clickeable, video MP4/WebM o YouTube con botón, estado activo, frecuencia configurable y columnas administrativas de estado/asignación.
+ * Version: 3.7
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Ing John Fandiño - Webmaster
@@ -97,6 +97,19 @@ function smp_translate($text)
     'Nueva pestaÃ±a' => 'New tab',
     'Imagen del Modal' => 'Modal Image',
     'Cerrar modal' => 'Close modal',
+    'Tipo de contenido' => 'Content type',
+    'Imagen' => 'Image',
+    'Video MP4/WebM' => 'MP4/WebM video',
+    'Video de YouTube' => 'YouTube video',
+    'Video del Modal' => 'Modal Video',
+    'Seleccionar Video' => 'Select Video',
+    'Usar Video' => 'Use Video',
+    'Formatos permitidos: MP4 y WebM.' => 'Allowed formats: MP4 and WebM.',
+    'URL de YouTube' => 'YouTube URL',
+    'Acepta enlaces de youtube.com, youtu.be y YouTube Shorts.' => 'Accepts youtube.com, youtu.be and YouTube Shorts links.',
+    'Texto del botón' => 'Button text',
+    'Más información' => 'Learn more',
+    'Con imagen, la URL enlaza la imagen. Con video o YouTube, se muestra un botón debajo del video con esta URL y el ID Tag Manager.' => 'With an image, the URL links the image. With video or YouTube, a button is shown below the video with this URL and the Tag Manager ID.',
   ];
 
   return isset($translations[$text]) ? $translations[$text] : __($text, 'spec-modal-pro');
@@ -121,7 +134,82 @@ function smp_get_asset_version($path)
 {
   $file = plugin_dir_path(__FILE__) . ltrim($path, '/');
 
-  return file_exists($file) ? (string) filemtime($file) : '3.6';
+  return file_exists($file) ? (string) filemtime($file) : '3.7';
+}
+
+function smp_get_allowed_media_types()
+{
+  return ['image', 'video', 'youtube'];
+}
+
+function smp_get_allowed_video_mime_types()
+{
+  return ['video/mp4', 'video/webm'];
+}
+
+function smp_sanitize_media_type($media_type)
+{
+  $media_type = sanitize_key((string) $media_type);
+
+  // Los modales creados antes de la versión 3.7 no tienen tipo y se tratan como imagen.
+  return in_array($media_type, smp_get_allowed_media_types(), true) ? $media_type : 'image';
+}
+
+function smp_get_modal_media_type($modal_id)
+{
+  return smp_sanitize_media_type(get_post_meta($modal_id, '_smp_media_type', true));
+}
+
+function smp_sanitize_video_attachment_id($attachment_id)
+{
+  $attachment_id = absint($attachment_id);
+
+  if (!$attachment_id || get_post_type($attachment_id) !== 'attachment') {
+    return 0;
+  }
+
+  return in_array(get_post_mime_type($attachment_id), smp_get_allowed_video_mime_types(), true) ? $attachment_id : 0;
+}
+
+function smp_get_youtube_video_id($url)
+{
+  $url = trim((string) $url);
+
+  if ($url === '') {
+    return '';
+  }
+
+  $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+  $host = preg_replace('/^(www\.|m\.)/', '', $host);
+  $path = (string) wp_parse_url($url, PHP_URL_PATH);
+  $video_id = '';
+
+  if ($host === 'youtu.be') {
+    $video_id = trim($path, '/');
+  } elseif (in_array($host, ['youtube.com', 'youtube-nocookie.com'], true)) {
+    if (preg_match('#^/(?:embed|shorts|live)/([^/]+)#', $path, $path_matches)) {
+      $video_id = $path_matches[1];
+    } else {
+      parse_str((string) wp_parse_url($url, PHP_URL_QUERY), $query_args);
+      $video_id = isset($query_args['v']) && is_string($query_args['v']) ? $query_args['v'] : '';
+    }
+  }
+
+  return preg_match('/^[A-Za-z0-9_-]{11}$/', $video_id) ? $video_id : '';
+}
+
+function smp_is_youtube_short_url($url)
+{
+  $path = (string) wp_parse_url((string) $url, PHP_URL_PATH);
+
+  return smp_get_youtube_video_id($url) !== '' && strpos($path, '/shorts/') === 0;
+}
+
+function smp_sanitize_youtube_url($url)
+{
+  $url = esc_url_raw(trim((string) $url));
+
+  return smp_get_youtube_video_id($url) ? $url : '';
 }
 
 function smp_get_page_hierarchy_label($page_id)
@@ -418,6 +506,9 @@ add_action('admin_enqueue_scripts', function ($hook) {
   wp_localize_script('smp-admin', 'SMP_ADMIN_I18N', [
     'mediaTitle' => smp_translate('Seleccionar Imagen'),
     'mediaButton' => smp_translate('Usar Imagen'),
+    'videoMediaTitle' => smp_translate('Seleccionar Video'),
+    'videoMediaButton' => smp_translate('Usar Video'),
+    'videoMimeTypes' => smp_get_allowed_video_mime_types(),
   ]);
 });
 
@@ -554,7 +645,17 @@ function smp_meta_callback($post)
   $cta_id = get_post_meta($post->ID, '_smp_cta_id', true);
   $cta_target = get_post_meta($post->ID, '_smp_cta_target', true);
   $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
+  $cta_label = get_post_meta($post->ID, '_smp_cta_label', true);
   $image_id = absint(get_post_meta($post->ID, '_smp_image_id', true));
+  $media_type = smp_get_modal_media_type($post->ID);
+  $video_id = smp_sanitize_video_attachment_id(get_post_meta($post->ID, '_smp_video_id', true));
+  $video_url = $video_id ? wp_get_attachment_url($video_id) : '';
+  $youtube_url = get_post_meta($post->ID, '_smp_youtube_url', true);
+  $media_type_labels = [
+    'image' => smp_translate('Imagen'),
+    'video' => smp_translate('Video MP4/WebM'),
+    'youtube' => smp_translate('Video de YouTube'),
+  ];
   $enabled = get_post_meta($post->ID, '_smp_enabled', true);
   $enabled = ($enabled === '' || $enabled === null) ? '1' : $enabled;
   $schedule = smp_get_publication_schedule($post->ID);
@@ -655,9 +756,65 @@ function smp_meta_callback($post)
       </tbody>
     </table>
 
+    <hr>
+
+    <fieldset class="smp-field smp-media-type">
+      <legend><strong><?php echo smp_esc_html('Tipo de contenido'); ?></strong></legend>
+      <?php foreach ($media_type_labels as $media_type_value => $media_type_label) : ?>
+        <label class="smp-media-type__option">
+          <input type="radio" name="smp_media_type" value="<?php echo esc_attr($media_type_value); ?>" <?php checked($media_type, $media_type_value); ?>>
+          <span><?php echo esc_html($media_type_label); ?></span>
+        </label>
+      <?php endforeach; ?>
+    </fieldset>
+
+    <div class="smp-media-section" data-smp-media-section="image" <?php echo $media_type === 'image' ? '' : 'hidden'; ?>>
+      <h4><?php echo smp_esc_html('Imagen del Modal'); ?></h4>
+      <input type="hidden" id="smp_image_id" name="smp_image_id" value="<?php echo esc_attr($image_id); ?>">
+      <button type="button" class="button" id="smp_upload_image_button"><?php echo smp_esc_html('Seleccionar Imagen'); ?></button>
+
+      <div id="smp_image_preview" class="smp-image-preview">
+        <?php
+        if ($image_id) {
+          echo wp_kses_post(wp_get_attachment_image($image_id, 'medium'));
+        }
+        ?>
+      </div>
+    </div>
+
+    <div class="smp-media-section" data-smp-media-section="video" <?php echo $media_type === 'video' ? '' : 'hidden'; ?>>
+      <h4><?php echo smp_esc_html('Video del Modal'); ?></h4>
+      <p class="description"><?php echo smp_esc_html('Formatos permitidos: MP4 y WebM.'); ?></p>
+      <input type="hidden" id="smp_video_id" name="smp_video_id" value="<?php echo esc_attr($video_id); ?>">
+      <button type="button" class="button" id="smp_upload_video_button"><?php echo smp_esc_html('Seleccionar Video'); ?></button>
+
+      <div id="smp_video_preview" class="smp-image-preview">
+        <?php if ($video_url) : ?>
+          <video src="<?php echo esc_url($video_url); ?>" controls preload="metadata"></video>
+        <?php endif; ?>
+      </div>
+    </div>
+
+    <div class="smp-media-section" data-smp-media-section="youtube" <?php echo $media_type === 'youtube' ? '' : 'hidden'; ?>>
+      <p class="smp-field">
+        <label for="smp_youtube_url"><strong><?php echo smp_esc_html('URL de YouTube'); ?></strong></label>
+        <input type="url" name="smp_youtube_url" id="smp_youtube_url" class="smp-field__control" placeholder="https://www.youtube.com/watch?v=" value="<?php echo esc_attr($youtube_url); ?>">
+        <span class="description"><?php echo smp_esc_html('Acepta enlaces de youtube.com, youtu.be y YouTube Shorts.'); ?></span>
+      </p>
+    </div>
+
+    <hr>
+
+    <p class="description"><?php echo smp_esc_html('Con imagen, la URL enlaza la imagen. Con video o YouTube, se muestra un botón debajo del video con esta URL y el ID Tag Manager.'); ?></p>
+
     <p class="smp-field">
       <label for="smp_cta_url"><strong><?php echo smp_esc_html('URL del Botón'); ?></strong></label>
       <input type="url" name="smp_cta_url" id="smp_cta_url" class="smp-field__control" value="<?php echo esc_attr($cta_url); ?>">
+    </p>
+
+    <p class="smp-field smp-media-section" data-smp-media-section="video youtube" <?php echo $media_type === 'image' ? 'hidden' : ''; ?>>
+      <label for="smp_cta_label"><strong><?php echo smp_esc_html('Texto del botón'); ?></strong></label>
+      <input type="text" name="smp_cta_label" id="smp_cta_label" class="smp-field__control" placeholder="<?php echo smp_esc_attr('Más información'); ?>" value="<?php echo esc_attr($cta_label); ?>">
     </p>
 
     <p class="smp-field">
@@ -672,20 +829,6 @@ function smp_meta_callback($post)
         <option value="_blank" <?php selected($cta_target, '_blank'); ?>><?php echo smp_esc_html('Nueva pestaña'); ?></option>
       </select>
     </p>
-
-    <hr>
-
-    <h4><?php echo smp_esc_html('Imagen del Modal'); ?></h4>
-    <input type="hidden" id="smp_image_id" name="smp_image_id" value="<?php echo esc_attr($image_id); ?>">
-    <button type="button" class="button" id="smp_upload_image_button"><?php echo smp_esc_html('Seleccionar Imagen'); ?></button>
-
-    <div id="smp_image_preview" class="smp-image-preview">
-      <?php
-      if ($image_id) {
-        echo wp_kses_post(wp_get_attachment_image($image_id, 'medium'));
-      }
-      ?>
-    </div>
   </div>
 <?php
 }
@@ -734,8 +877,20 @@ function smp_save_meta($post_id)
   $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
   update_post_meta($post_id, '_smp_cta_target', $cta_target);
 
+  $cta_label = isset($_POST['smp_cta_label']) ? sanitize_text_field(wp_unslash($_POST['smp_cta_label'])) : '';
+  update_post_meta($post_id, '_smp_cta_label', $cta_label);
+
   $image_id = isset($_POST['smp_image_id']) ? absint(wp_unslash($_POST['smp_image_id'])) : 0;
   update_post_meta($post_id, '_smp_image_id', $image_id);
+
+  $media_type = isset($_POST['smp_media_type']) ? smp_sanitize_media_type(wp_unslash($_POST['smp_media_type'])) : 'image';
+  update_post_meta($post_id, '_smp_media_type', $media_type);
+
+  $video_id = isset($_POST['smp_video_id']) ? smp_sanitize_video_attachment_id(wp_unslash($_POST['smp_video_id'])) : 0;
+  update_post_meta($post_id, '_smp_video_id', $video_id);
+
+  $youtube_url = isset($_POST['smp_youtube_url']) ? smp_sanitize_youtube_url(wp_unslash($_POST['smp_youtube_url'])) : '';
+  update_post_meta($post_id, '_smp_youtube_url', $youtube_url);
 
 }
 add_action('save_post', 'smp_save_meta');
@@ -853,6 +1008,140 @@ function smp_get_current_page_modal_ids()
 /* =====================================================
    7. FRONTEND
 ===================================================== */
+function smp_get_modal_cta($modal_id)
+{
+  $cta_target = get_post_meta($modal_id, '_smp_cta_target', true);
+  $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
+  $cta_label = sanitize_text_field(get_post_meta($modal_id, '_smp_cta_label', true));
+
+  return [
+    'url' => esc_url_raw(get_post_meta($modal_id, '_smp_cta_url', true)),
+    'id' => sanitize_html_class(get_post_meta($modal_id, '_smp_cta_id', true)),
+    'target' => $cta_target,
+    'rel' => $cta_target === '_blank' ? 'noopener noreferrer' : '',
+    'label' => $cta_label !== '' ? $cta_label : smp_translate('Más información'),
+  ];
+}
+
+function smp_get_cta_link_attributes($cta)
+{
+  $attributes = ' href="' . esc_url($cta['url']) . '" target="' . esc_attr($cta['target']) . '"';
+
+  if ($cta['rel']) {
+    $attributes .= ' rel="' . esc_attr($cta['rel']) . '"';
+  }
+
+  if ($cta['id']) {
+    $attributes .= ' id="' . esc_attr($cta['id']) . '"';
+  }
+
+  return $attributes;
+}
+
+function smp_get_modal_image_html($modal_id, $cta)
+{
+  $image_id = absint(get_post_meta($modal_id, '_smp_image_id', true));
+  $image_html = $image_id ? wp_get_attachment_image($image_id, 'large', false, [
+    'class' => 'smp-modal__image',
+    'loading' => 'lazy',
+    'decoding' => 'async',
+  ]) : '';
+
+  if (!$image_html) {
+    return '';
+  }
+
+  $image_html = wp_kses_post($image_html);
+
+  if ($cta['url']) {
+    $image_html = '<a' . smp_get_cta_link_attributes($cta) . '>' . $image_html . '</a>';
+  }
+
+  return '<div class="smp-image-wrapper">' . $image_html . '</div>';
+}
+
+function smp_get_modal_video_html($modal_id, $modal_title)
+{
+  $video_id = smp_sanitize_video_attachment_id(get_post_meta($modal_id, '_smp_video_id', true));
+  $video_url = $video_id ? wp_get_attachment_url($video_id) : '';
+
+  if (!$video_url) {
+    return '';
+  }
+
+  // preload="none" evita descargar el video mientras el modal está oculto; el JS lo activa al mostrarlo.
+  return '<div class="smp-media smp-media--video">'
+    . '<video class="smp-modal__video" controls playsinline preload="none" aria-label="' . esc_attr($modal_title) . '">'
+    . '<source src="' . esc_url($video_url) . '" type="' . esc_attr(get_post_mime_type($video_id)) . '">'
+    . '</video>'
+    . '</div>';
+}
+
+function smp_get_modal_youtube_html($modal_id, $modal_title)
+{
+  $youtube_video_id = smp_get_youtube_video_id(get_post_meta($modal_id, '_smp_youtube_url', true));
+
+  if (!$youtube_video_id) {
+    return '';
+  }
+
+  $embed_url = 'https://www.youtube-nocookie.com/embed/' . rawurlencode($youtube_video_id) . '?rel=0';
+
+  // El iframe se carga con data-smp-src para no pedir recursos a YouTube hasta que el modal se muestre.
+  return '<div class="smp-media smp-media--youtube">'
+    . '<iframe class="smp-modal__youtube" data-smp-src="' . esc_url($embed_url) . '" title="' . esc_attr($modal_title) . '"'
+    . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"'
+    . ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>'
+    . '</div>';
+}
+
+function smp_get_modal_cta_button_html($cta)
+{
+  if (!$cta['url']) {
+    return '';
+  }
+
+  return '<div class="smp-modal__actions">'
+    . '<a class="smp-modal__cta"' . smp_get_cta_link_attributes($cta) . '>' . esc_html($cta['label']) . '</a>'
+    . '</div>';
+}
+
+function smp_get_modal_content_html($modal_id, $media_type, $modal_title)
+{
+  $cta = smp_get_modal_cta($modal_id);
+
+  if ($media_type === 'image') {
+    return smp_get_modal_image_html($modal_id, $cta);
+  }
+
+  $video_html = $media_type === 'youtube'
+    ? smp_get_modal_youtube_html($modal_id, $modal_title)
+    : smp_get_modal_video_html($modal_id, $modal_title);
+
+  if (!$video_html) {
+    return '';
+  }
+
+  return $video_html . smp_get_modal_cta_button_html($cta);
+}
+
+function smp_get_modal_classes($modal_id, $media_type)
+{
+  if ($media_type === 'image') {
+    return 'smp-modal';
+  }
+
+  $modal_classes = ['smp-modal', 'smp-modal--video'];
+
+  // El iframe de YouTube no expone sus dimensiones, por eso los Shorts se marcan como verticales desde PHP.
+  if ($media_type === 'youtube' && smp_is_youtube_short_url(get_post_meta($modal_id, '_smp_youtube_url', true))) {
+    $modal_classes[] = 'smp-modal--portrait';
+    $modal_classes[] = 'smp-modal--youtube-short';
+  }
+
+  return implode(' ', $modal_classes);
+}
+
 function smp_render_modals()
 {
   static $rendered = false;
@@ -880,33 +1169,19 @@ function smp_render_modals()
     $delay = $delay ?: 2000;
     $frequency = get_post_meta($modal_id, '_smp_frequency', true);
     $frequency = in_array($frequency, ['session', 'persistent'], true) ? $frequency : 'session';
-    $cta_url = esc_url(get_post_meta($modal_id, '_smp_cta_url', true));
-    $cta_id = sanitize_html_class(get_post_meta($modal_id, '_smp_cta_id', true));
-    $cta_target = get_post_meta($modal_id, '_smp_cta_target', true);
-    $cta_target = in_array($cta_target, ['_self', '_blank'], true) ? $cta_target : '_self';
-    $cta_rel = $cta_target === '_blank' ? 'noopener noreferrer' : '';
-    $image_id = absint(get_post_meta($modal_id, '_smp_image_id', true));
-    $image_html = $image_id ? wp_get_attachment_image($image_id, 'large', false, [
-      'class' => 'smp-modal__image',
-      'loading' => 'lazy',
-      'decoding' => 'async',
-    ]) : '';
+    $modal_title = get_the_title($modal_id);
+    $media_type = smp_get_modal_media_type($modal_id);
+    $modal_classes = smp_get_modal_classes($modal_id, $media_type);
+    $content_html = smp_get_modal_content_html($modal_id, $media_type, $modal_title);
 ?>
     <div class="smp-overlay" id="smp-<?php echo esc_attr($modal_id); ?>" data-smp-delay="<?php echo esc_attr($delay); ?>" data-smp-frequency="<?php echo esc_attr($frequency); ?>">
-      <div class="smp-modal" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr(get_the_title($modal_id)); ?>">
+      <div class="<?php echo esc_attr($modal_classes); ?>" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr($modal_title); ?>">
         <button type="button" class="smp-close" aria-label="<?php echo smp_esc_attr('Cerrar modal'); ?>">&times;</button>
 
-        <?php if ($image_html) : ?>
-          <div class="smp-image-wrapper">
-            <?php if ($cta_url) : ?>
-              <a href="<?php echo esc_url($cta_url); ?>" target="<?php echo esc_attr($cta_target); ?>"<?php echo $cta_rel ? ' rel="' . esc_attr($cta_rel) . '"' : ''; ?><?php echo $cta_id ? ' id="' . esc_attr($cta_id) . '"' : ''; ?>>
-                <?php echo wp_kses_post($image_html); ?>
-              </a>
-            <?php else : ?>
-              <?php echo wp_kses_post($image_html); ?>
-            <?php endif; ?>
-          </div>
-        <?php endif; ?>
+        <?php
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Cada helper smp_get_modal_*_html escapa su salida.
+        echo $content_html;
+        ?>
       </div>
     </div>
 <?php

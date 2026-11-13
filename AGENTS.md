@@ -30,7 +30,7 @@ Versiones vigentes documentadas:
 
 - `spec-header-banner`: 4.7.
 - `spec-floating-banner`: 1.15.
-- `spec-modal-checklist`: 3.6.
+- `spec-modal-checklist`: 3.7.
 
 Cada plugin debe poder copiarse de forma independiente a `wp-content/plugins/`.
 

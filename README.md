@@ -31,7 +31,7 @@ Evitar código difícil de entender: nombres ambiguos, funciones enormes, duplic
 | -------------------- | ---------------------- | ------- | --------------------------------------------------------------------------------------------------- |
 | SPEC Header Banner   | `spec-header-banner`   | 4.7     | Banners full width por página, en formato imagen o cenefa de texto, ubicados bajo el header en home/front-page o bajo el contenedor externo de breadcrumbs cuando exista. |
 | SPEC Floating Banner | `spec-floating-banner` | 1.15    | Banners flotantes por página, con imagen o video, CTA, target, cierre temporal y programación.     |
-| SPEC Modal Pro       | `spec-modal-checklist` | 3.6     | Modales promocionales por página y rol, con imagen clickeable, frecuencia, estado y programación.  |
+| SPEC Modal Pro       | `spec-modal-checklist` | 3.7     | Modales promocionales por página y rol, con imagen clickeable o video (MP4/WebM/YouTube) con botón, frecuencia, estado y programación. |
 
 ## SPEC Header Banner
 

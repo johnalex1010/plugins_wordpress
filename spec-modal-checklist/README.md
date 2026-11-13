@@ -4,7 +4,7 @@ Plugin WordPress para gestionar modales promocionales segmentados por página.
 
 ## Descripción
 
-SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar modales con imagen clickeable, frecuencia y páginas asignadas. El plugin no crea URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
+SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar modales con imagen clickeable o video (MP4/WebM o YouTube) con botón de acción, frecuencia y páginas asignadas. El plugin no crea URLs públicas propias y no modifica metadata SEO, canonicales, schema ni configuración de Yoast SEO.
 
 ## Funcionalidades
 
@@ -16,8 +16,12 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - Programación opcional con fecha de inicio y fecha de fin.
 - Estado administrativo calculado por programación: sin fechas usa `Publicado` / `Borrador`; con fechas usa `Programado`, `Publicado` o `Borrador`.
 - Cambio automático a borrador cuando la fecha de fin ya está vencida.
+- Tipo de contenido por modal: imagen, video MP4/WebM de la biblioteca de medios o video de YouTube.
 - URL y target para enlazar la imagen del modal.
 - ID opcional para seguimiento en Tag Manager sobre el enlace de la imagen.
+- Con video MP4/WebM o YouTube se muestra un botón adicional debajo del video con la URL, el target, el ID Tag Manager y un texto configurable (por defecto `Más información`).
+- Carga diferida de video: el MP4/WebM usa `preload="none"` y el iframe de YouTube (`youtube-nocookie.com`) solo se carga al mostrar el modal; ambos se detienen al cerrarlo.
+- El modal de video se adapta a la proporción real del archivo MP4/WebM (vertical, horizontal o cuadrado) leyendo sus metadatos, sin franjas negras y limitado al alto de la pantalla. YouTube usa 16:9 y los enlaces `shorts/` se muestran en 9:16.
 - Imagen obligatoria para publicar.
 - Columnas administrativas de estado, activo y páginas asignadas.
 - Tabla informativa de páginas donde hay modales activos.
@@ -46,7 +50,8 @@ Sube las imágenes de referencia en `docs/images/` usando estos nombres para que
 - Nonce en guardado de metabox.
 - Validación de permisos con `current_user_can()`.
 - Sanitización con `absint()`, `sanitize_key()`, `sanitize_html_class()`, `sanitize_text_field()` y `esc_url_raw()`.
-- Allowlists para frecuencia, target y modo de imagen.
+- Allowlists para frecuencia, target, tipo de contenido (`image`, `video`, `youtube`) y MIME de video (`video/mp4`, `video/webm`).
+- Validación de URL de YouTube por host (`youtube.com`, `youtu.be`, `youtube-nocookie.com`) e ID de 11 caracteres.
 - Validación de páginas tipo `page`.
 - Escape de salida con `esc_html()`, `esc_attr()`, `esc_url()` y `wp_kses_post()`.
 - `rel="noopener noreferrer"` cuando el enlace abre en nueva pestaña.
@@ -69,6 +74,7 @@ Este plugin debe mantenerse legible, modular y escalable:
 - No duplica metadata, canonicales ni schema de Yoast.
 - Usa HTML accesible para el modal con `role="dialog"` y `aria-modal="true"`.
 - Las imágenes se renderizan mediante `wp_get_attachment_image()`.
+- Los videos no afectan el LCP inicial: se cargan solo cuando el modal se muestra, y el iframe de YouTube tiene `title` accesible.
 
 ## Estructura
 
@@ -117,6 +123,10 @@ Validar en WordPress:
 - Seleccionar imagen.
 - Guardar URL y target.
 - Guardar ID Tag Manager y confirmar que se renderiza como `id` del enlace cuando existe URL.
+- Cambiar el tipo de contenido a video MP4/WebM, seleccionar un video y confirmar el botón debajo del video con URL, target, texto e ID Tag Manager.
+- Cambiar el tipo de contenido a YouTube con enlaces `watch?v=`, `youtu.be` y `shorts/`, y confirmar que el video carga solo al abrirse el modal.
+- Cerrar el modal con video en reproducción y confirmar que el audio se detiene.
+- Confirmar que los modales existentes (sin tipo guardado) siguen mostrándose como imagen.
 - Asignar páginas.
 - Confirmar que el selector muestra jerarquía de páginas cuando existen padres.
 - Revisar columnas administrativas.
@@ -137,4 +147,8 @@ Restaurar `spec-modal-checklist.php`, los archivos en `assets/` y la carpeta `la
 - `_smp_cta_url`
 - `_smp_cta_id`
 - `_smp_cta_target`
+- `_smp_cta_label`
 - `_smp_image_id`
+- `_smp_media_type`
+- `_smp_video_id`
+- `_smp_youtube_url`

@@ -48,3 +48,80 @@
   height: auto;
   width: 100%;
 }
+
+/*
+ * El ancho del modal de video se calcula con la proporción real del video (--smp-video-ratio,
+ * definida por JS al leer sus metadatos) y la altura disponible del viewport.
+ * 140px = padding superior/inferior del modal + bloque del botón CTA.
+ */
+.smp-modal--video {
+  --smp-video-ratio: 16 / 9;
+  --smp-video-max-height: calc(90vh - 140px);
+  box-sizing: border-box;
+  max-height: 90vh;
+  max-width: none;
+  overflow-y: auto;
+  padding: 56px 16px 16px;
+  width: min(720px, calc(100vw - 32px), calc(var(--smp-video-max-height) * var(--smp-video-ratio) + 32px));
+}
+
+.smp-modal--video.smp-modal--portrait {
+  min-width: min(300px, calc(100vw - 32px));
+}
+
+.smp-modal--youtube-short {
+  --smp-video-ratio: 9 / 16;
+}
+
+.smp-modal--video .smp-close {
+  right: 12px;
+  top: 10px;
+}
+
+.smp-media {
+  aspect-ratio: var(--smp-video-ratio);
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.smp-modal__video {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.smp-modal__youtube {
+  border: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.smp-modal__actions {
+  margin-top: 16px;
+}
+
+.smp-modal__cta {
+  background: #0057b8;
+  border-radius: 6px;
+  color: #fff;
+  display: inline-block;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 12px 24px;
+  text-decoration: none;
+}
+
+.smp-modal__cta:hover,
+.smp-modal__cta:focus-visible {
+  background: #003f86;
+  color: #fff;
+}
+
+.smp-modal__cta:focus-visible {
+  outline: 2px solid #0057b8;
+  outline-offset: 2px;
+}

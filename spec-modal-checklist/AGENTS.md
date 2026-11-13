@@ -10,7 +10,7 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Archivo principal: `spec-modal-checklist.php`.
 - Text domain: `spec-modal-pro`.
 - CPT privado: `smp_modal`.
-- Versión documentada: 3.6.
+- Versión documentada: 3.7.
 - Requiere WordPress 6.0+ y PHP 7.4+.
 - Render frontend: modal promocional segmentado por página y rol.
 
@@ -27,11 +27,18 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
   - `_smp_pages`
   - `_smp_cta_url`
   - `_smp_cta_target`
+  - `_smp_cta_id`
+  - `_smp_cta_label`
   - `_smp_image_id`
+  - `_smp_media_type`
+  - `_smp_video_id`
+  - `_smp_youtube_url`
 - Mantener estado activo/inactivo por modal.
 - Mantener segmentación por páginas y roles.
 - Mantener frecuencia `session` o `persistent` de 1 hora salvo SPEC contraria.
 - Mantener imagen obligatoria para publicar cuando el comportamiento documentado lo requiera.
+- Mantener tipos de contenido con allowlist `image`, `video` (MP4/WebM) y `youtube`; los modales sin `_smp_media_type` se tratan como `image`.
+- Con video o YouTube, el CTA se renderiza como botón debajo del video reutilizando URL, target e ID Tag Manager.
 - Mantener target con allowlist `_self` y `_blank`.
 - Mantener programación opcional por fecha de inicio y fecha de fin, con fechas vacías como comportamiento siempre vigente cuando el modal esté publicado y activo.
 - Mantener estado administrativo dependiente de programación y pasar automáticamente a borrador cuando la fecha de fin esté vencida.

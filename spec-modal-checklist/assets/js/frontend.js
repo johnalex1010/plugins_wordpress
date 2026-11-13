@@ -43,8 +43,68 @@
     } catch (error) {}
   }
 
+  // Ajusta el ancho del modal a la proporción real del video para evitar franjas negras en videos verticales.
+  function applyVideoRatio(modal, video) {
+    var videoWidth = video.videoWidth;
+    var videoHeight = video.videoHeight;
+
+    if (!videoWidth || !videoHeight) {
+      return;
+    }
+
+    var isPortrait = videoHeight > videoWidth;
+
+    modal.style.setProperty('--smp-video-ratio', videoWidth + ' / ' + videoHeight);
+    modal.classList.toggle('smp-modal--portrait', isPortrait);
+    modal.classList.toggle('smp-modal--landscape', !isPortrait);
+  }
+
+  function loadModalMedia(modal) {
+    var dialog = modal.querySelector('.smp-modal');
+
+    modal.querySelectorAll('video.smp-modal__video').forEach(function (video) {
+      if (dialog) {
+        if (video.readyState >= 1) {
+          applyVideoRatio(dialog, video);
+        } else {
+          video.addEventListener('loadedmetadata', function () {
+            applyVideoRatio(dialog, video);
+          }, { once: true });
+        }
+      }
+
+      if (video.preload === 'none') {
+        video.preload = 'metadata';
+        video.load();
+      }
+    });
+
+    modal.querySelectorAll('iframe[data-smp-src]').forEach(function (iframe) {
+      if (!iframe.getAttribute('src')) {
+        iframe.setAttribute('src', iframe.getAttribute('data-smp-src'));
+      }
+    });
+  }
+
+  function stopModalMedia(modal) {
+    modal.querySelectorAll('video.smp-modal__video').forEach(function (video) {
+      video.pause();
+    });
+
+    // Quitar el src del iframe es la forma fiable de detener YouTube sin cargar su API.
+    modal.querySelectorAll('iframe[data-smp-src]').forEach(function (iframe) {
+      iframe.removeAttribute('src');
+    });
+  }
+
+  function showModal(modal) {
+    loadModalMedia(modal);
+    modal.classList.add('is-visible');
+  }
+
   function closeModal(modal) {
     modal.classList.remove('is-visible');
+    stopModalMedia(modal);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -70,7 +130,7 @@
       }
 
       window.setTimeout(function () {
-        modal.classList.add('is-visible');
+        showModal(modal);
         markAsSeen(modal);
       }, delay);
     });

@@ -1,16 +1,23 @@
 (function ($) {
   'use strict';
 
-  $(function () {
-    var mediaFrame;
-    var $pageSearch = $('#smp_page_search');
-    var $pageItems = $('.smp-page-selector__item');
-    var $pageEmpty = $('.smp-page-selector__empty');
+  var adminI18n = window.SMP_ADMIN_I18N || {};
 
-    $('#smp_upload_image_button').on('click', function (event) {
+  function getI18nText(key, fallback) {
+    return adminI18n[key] ? adminI18n[key] : fallback;
+  }
+
+  function isMediaLibraryAvailable() {
+    return typeof wp !== 'undefined' && typeof wp.media !== 'undefined';
+  }
+
+  function bindMediaPicker(options) {
+    var mediaFrame;
+
+    $(options.buttonSelector).on('click', function (event) {
       event.preventDefault();
 
-      if (typeof wp === 'undefined' || typeof wp.media === 'undefined') {
+      if (!isMediaLibraryAvailable()) {
         return;
       }
 
@@ -20,25 +27,90 @@
       }
 
       mediaFrame = wp.media({
-        title: window.SMP_ADMIN_I18N && window.SMP_ADMIN_I18N.mediaTitle ? window.SMP_ADMIN_I18N.mediaTitle : 'Seleccionar Imagen',
+        title: options.title,
         button: {
-          text: window.SMP_ADMIN_I18N && window.SMP_ADMIN_I18N.mediaButton ? window.SMP_ADMIN_I18N.mediaButton : 'Usar Imagen'
+          text: options.buttonText
         },
+        library: options.library,
         multiple: false
       });
 
       mediaFrame.on('select', function () {
         var attachment = mediaFrame.state().get('selection').first().toJSON();
-        var image = document.createElement('img');
 
-        image.src = attachment.url;
-        image.alt = attachment.alt || '';
+        if (!options.isValidAttachment(attachment)) {
+          return;
+        }
 
-        $('#smp_image_id').val(attachment.id);
-        $('#smp_image_preview').empty().append(image);
+        $(options.inputSelector).val(attachment.id);
+        $(options.previewSelector).empty().append(options.createPreview(attachment));
       });
 
       mediaFrame.open();
+    });
+  }
+
+  function createImagePreview(attachment) {
+    var image = document.createElement('img');
+
+    image.src = attachment.url;
+    image.alt = attachment.alt || '';
+
+    return image;
+  }
+
+  function createVideoPreview(attachment) {
+    var video = document.createElement('video');
+
+    video.src = attachment.url;
+    video.controls = true;
+    video.preload = 'metadata';
+
+    return video;
+  }
+
+  function toggleMediaSections(selectedMediaType) {
+    $('[data-smp-media-section]').each(function () {
+      var allowedMediaTypes = String($(this).attr('data-smp-media-section') || '').split(' ');
+
+      $(this).prop('hidden', allowedMediaTypes.indexOf(selectedMediaType) === -1);
+    });
+  }
+
+  $(function () {
+    var videoMimeTypes = $.isArray(adminI18n.videoMimeTypes) ? adminI18n.videoMimeTypes : ['video/mp4', 'video/webm'];
+    var $pageSearch = $('#smp_page_search');
+    var $pageItems = $('.smp-page-selector__item');
+    var $pageEmpty = $('.smp-page-selector__empty');
+
+    bindMediaPicker({
+      buttonSelector: '#smp_upload_image_button',
+      inputSelector: '#smp_image_id',
+      previewSelector: '#smp_image_preview',
+      title: getI18nText('mediaTitle', 'Seleccionar Imagen'),
+      buttonText: getI18nText('mediaButton', 'Usar Imagen'),
+      library: { type: 'image' },
+      isValidAttachment: function () {
+        return true;
+      },
+      createPreview: createImagePreview
+    });
+
+    bindMediaPicker({
+      buttonSelector: '#smp_upload_video_button',
+      inputSelector: '#smp_video_id',
+      previewSelector: '#smp_video_preview',
+      title: getI18nText('videoMediaTitle', 'Seleccionar Video'),
+      buttonText: getI18nText('videoMediaButton', 'Usar Video'),
+      library: { type: videoMimeTypes },
+      isValidAttachment: function (attachment) {
+        return videoMimeTypes.indexOf(attachment.mime) !== -1;
+      },
+      createPreview: createVideoPreview
+    });
+
+    $('input[name="smp_media_type"]').on('change', function () {
+      toggleMediaSections(String($(this).val() || 'image'));
     });
 
     $pageSearch.on('input', function () {

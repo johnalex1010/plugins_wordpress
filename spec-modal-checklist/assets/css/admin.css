@@ -106,7 +106,23 @@
   margin-top: 10px;
 }
 
-.smp-image-preview img {
+.smp-image-preview img,
+.smp-image-preview video {
   height: auto;
   max-width: 100%;
+}
+
+.smp-image-preview video {
+  max-height: 320px;
+}
+
+.smp-media-type__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 16px 0 0;
+}
+
+.smp-media-section[hidden] {
+  display: none;
 }
