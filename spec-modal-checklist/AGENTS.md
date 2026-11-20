@@ -32,6 +32,9 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
   - `_smp_image_id`
   - `_smp_media_type`
   - `_smp_video_id`
+  - `_smp_video_poster_id`
+  - `_smp_mobile_title`
+  - `_smp_mobile_description`
   - `_smp_youtube_url`
 - Mantener estado activo/inactivo por modal.
 - Mantener segmentación por páginas y roles.
@@ -39,6 +42,10 @@ Este archivo complementa el `AGENTS.md` raíz del repositorio. Si hay contradicc
 - Mantener imagen obligatoria para publicar cuando el comportamiento documentado lo requiera.
 - Mantener tipos de contenido con allowlist `image`, `video` (MP4/WebM) y `youtube`; los modales sin `_smp_media_type` se tratan como `image`.
 - Con video o YouTube, el CTA se renderiza como botón debajo del video reutilizando URL, target e ID Tag Manager.
+- Orden de carga del video: primero la imagen. La portada del MP4/WebM va en `data-smp-poster` y el JS la asigna como `poster` antes de pedir la metadata. YouTube muestra su miniatura y solo carga el iframe al hacer clic. No volver a poner `poster` ni `src` del iframe directo en el HTML.
+- La proporción del modal de video (`--smp-video-ratio` y clase `smp-modal--portrait`/`--landscape`) se calcula en PHP con `smp_get_modal_video_dimensions()` para evitar el salto de 16:9 a vertical; no depender solo del evento `loadedmetadata`.
+- Con video MP4/WebM, el video y la portada (`_smp_video_poster_id`) son obligatorios para publicar: si faltan, `wp_insert_post_data` pasa el modal a borrador. La portada debe ser una imagen de la biblioteca de medios y se renderiza como atributo `poster`. El render no exige la portada, para no ocultar modales ya publicados antes de esta regla.
+- Con video MP4/WebM o YouTube, el título móvil y la descripción corta son obligatorios para publicar. Por debajo de 800px (breakpoint compartido entre `frontend.css` y `frontend.js`) el overlay con clase `smp-overlay--has-mobile` oculta el video y muestra ese texto con el mismo CTA; sin esa clase el modal no se muestra en móvil.
 - Mantener target con allowlist `_self` y `_blank`.
 - Mantener programación opcional por fecha de inicio y fecha de fin, con fechas vacías como comportamiento siempre vigente cuando el modal esté publicado y activo.
 - Mantener estado administrativo dependiente de programación y pasar automáticamente a borrador cuando la fecha de fin esté vencida.

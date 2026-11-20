@@ -126,3 +126,15 @@
 .smp-media-section[hidden] {
   display: none;
 }
+
+.smp-remove-media {
+  margin-left: 8px;
+}
+
+.smp-required-notice {
+  margin: 10px 0;
+}
+
+.smp-required-notice[hidden] {
+  display: none;
+}

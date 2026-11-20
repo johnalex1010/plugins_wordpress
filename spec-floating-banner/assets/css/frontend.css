@@ -63,3 +63,10 @@
   color: #fff;
   text-decoration: none;
 }
+
+/* El banner flotante solo se muestra en viewports de 800px o más. */
+@media (max-width: 799.98px) {
+  .sfb-floating-banner {
+    display: none;
+  }
+}

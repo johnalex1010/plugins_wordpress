@@ -169,6 +169,50 @@ msgstr "Select Video"
 msgid "Usar Video"
 msgstr "Use Video"
 
+msgid "Portada del video"
+msgstr "Video cover"
+
+msgid "Obligatoria. Imagen que se muestra mientras el video carga, en lugar de una pantalla negra."
+msgstr "Required. Image shown while the video loads, instead of a black screen."
+
+msgid "Seleccionar portada"
+msgstr "Select cover"
+
+msgid "Usar portada"
+msgstr "Use cover"
+
+msgid "Quitar portada"
+msgstr "Remove cover"
+
+msgid "Versión móvil"
+msgstr "Mobile version"
+
+msgid "En pantallas menores a 800px el video se oculta y se muestran este título y esta descripción con el mismo botón. Ambos son obligatorios para publicar el modal."
+msgstr "On screens narrower than 800px the video is hidden and this title and description are shown with the same button. Both are required to publish the modal."
+
+msgid "Título móvil"
+msgstr "Mobile title"
+
+msgid "Descripción corta"
+msgstr "Short description"
+
+#, php-format
+msgid "Máximo %d caracteres."
+msgstr "Maximum %d characters."
+
+#, php-format
+msgid "Reproducir video: %s"
+msgstr "Play video: %s"
+
+msgid "El video y la portada son obligatorios para publicar el modal."
+msgstr "The video and cover are required to publish the modal."
+
+msgid "Completa los campos obligatorios del tipo de contenido antes de publicar el modal."
+msgstr "Complete the required fields for the content type before publishing the modal."
+
+msgid "El modal quedó como borrador porque faltan campos obligatorios para publicarlo."
+msgstr "The modal was saved as a draft because required fields are missing."
+
 msgid "Formatos permitidos: MP4 y WebM."
 msgstr "Allowed formats: MP4 and WebM."
 

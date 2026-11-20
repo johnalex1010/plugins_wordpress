@@ -31,6 +31,7 @@ El plugin está pensado para administración interna: el CPT no es público, no 
   - Tipo de pieza: `Imagen` / `Video`.
   - Páginas del banner.
 - Frontend con cierre temporal sin persistencia.
+- Solo visible en desktop: el banner se oculta por CSS cuando el viewport es menor a 800px (`@media (max-width: 799.98px)`).
 - Assets separados para admin y frontend.
 - Internacionalización mediante text domain `spec-floating-banner` y traducción inglesa `en_US`.
 

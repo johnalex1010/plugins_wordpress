@@ -44,6 +44,12 @@
 
         $(options.inputSelector).val(attachment.id);
         $(options.previewSelector).empty().append(options.createPreview(attachment));
+
+        if (options.removeButtonSelector) {
+          $(options.removeButtonSelector).prop('hidden', false);
+        }
+
+        updateRequiredFieldsNotice();
       });
 
       mediaFrame.open();
@@ -77,6 +83,65 @@
     });
   }
 
+  function getSelectedMediaType() {
+    return String($('input[name="smp_media_type"]:checked').val() || 'image');
+  }
+
+  function hasFieldValue(selector) {
+    return String($(selector).val() || '').trim() !== '';
+  }
+
+  // Devuelve el selector del primer campo obligatorio vacío según el tipo de contenido, o '' si no falta ninguno.
+  function getFirstMissingRequiredField() {
+    var selectedMediaType = getSelectedMediaType();
+
+    if (selectedMediaType === 'video') {
+      if (!hasFieldValue('#smp_video_id')) {
+        return '#smp_upload_video_button';
+      }
+
+      if (!hasFieldValue('#smp_video_poster_id')) {
+        return '#smp_upload_video_poster_button';
+      }
+    }
+
+    if (selectedMediaType === 'video' || selectedMediaType === 'youtube') {
+      if (!hasFieldValue('#smp_mobile_title')) {
+        return '#smp_mobile_title';
+      }
+
+      if (!hasFieldValue('#smp_mobile_description')) {
+        return '#smp_mobile_description';
+      }
+    }
+
+    return '';
+  }
+
+  function updateRequiredFieldsNotice() {
+    if (!getFirstMissingRequiredField()) {
+      $('#smp_required_fields_notice').prop('hidden', true);
+    }
+  }
+
+  // Solo se valida al publicar o actualizar (#publish); guardar borrador sigue permitido.
+  function bindPublishValidation() {
+    $('#publish').on('click', function (event) {
+      var missingFieldSelector = getFirstMissingRequiredField();
+
+      if (!missingFieldSelector) {
+        return;
+      }
+
+      event.preventDefault();
+      $('#smp_required_fields_notice').prop('hidden', false);
+      $(missingFieldSelector).trigger('focus');
+    });
+
+    $('#smp_mobile_title, #smp_mobile_description').on('input', updateRequiredFieldsNotice);
+    $('input[name="smp_media_type"]').on('change', updateRequiredFieldsNotice);
+  }
+
   $(function () {
     var videoMimeTypes = $.isArray(adminI18n.videoMimeTypes) ? adminI18n.videoMimeTypes : ['video/mp4', 'video/webm'];
     var $pageSearch = $('#smp_page_search');
@@ -108,6 +173,31 @@
       },
       createPreview: createVideoPreview
     });
+
+    bindMediaPicker({
+      buttonSelector: '#smp_upload_video_poster_button',
+      inputSelector: '#smp_video_poster_id',
+      previewSelector: '#smp_video_poster_preview',
+      removeButtonSelector: '#smp_remove_video_poster_button',
+      title: getI18nText('posterMediaTitle', 'Seleccionar portada'),
+      buttonText: getI18nText('posterMediaButton', 'Usar portada'),
+      library: { type: 'image' },
+      isValidAttachment: function (attachment) {
+        return attachment.type === 'image';
+      },
+      createPreview: createImagePreview
+    });
+
+    $('.smp-remove-media').on('click', function (event) {
+      var $removeButton = $(this);
+
+      event.preventDefault();
+      $($removeButton.attr('data-smp-input')).val('');
+      $($removeButton.attr('data-smp-preview')).empty();
+      $removeButton.prop('hidden', true);
+    });
+
+    bindPublishValidation();
 
     $('input[name="smp_media_type"]').on('change', function () {
       toggleMediaSections(String($(this).val() || 'image'));

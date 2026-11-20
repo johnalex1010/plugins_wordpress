@@ -164,6 +164,50 @@ msgstr ""
 msgid "Usar Video"
 msgstr ""
 
+msgid "Portada del video"
+msgstr ""
+
+msgid "Obligatoria. Imagen que se muestra mientras el video carga, en lugar de una pantalla negra."
+msgstr ""
+
+msgid "Seleccionar portada"
+msgstr ""
+
+msgid "Usar portada"
+msgstr ""
+
+msgid "Quitar portada"
+msgstr ""
+
+msgid "Versión móvil"
+msgstr ""
+
+msgid "En pantallas menores a 800px el video se oculta y se muestran este título y esta descripción con el mismo botón. Ambos son obligatorios para publicar el modal."
+msgstr ""
+
+msgid "Título móvil"
+msgstr ""
+
+msgid "Descripción corta"
+msgstr ""
+
+#, php-format
+msgid "Máximo %d caracteres."
+msgstr ""
+
+#, php-format
+msgid "Reproducir video: %s"
+msgstr ""
+
+msgid "El video y la portada son obligatorios para publicar el modal."
+msgstr ""
+
+msgid "Completa los campos obligatorios del tipo de contenido antes de publicar el modal."
+msgstr ""
+
+msgid "El modal quedó como borrador porque faltan campos obligatorios para publicarlo."
+msgstr ""
+
 msgid "Formatos permitidos: MP4 y WebM."
 msgstr ""
 

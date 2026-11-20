@@ -20,9 +20,14 @@ SPEC Modal Pro crea un Custom Post Type privado (`smp_modal`) para administrar m
 - URL y target para enlazar la imagen del modal.
 - ID opcional para seguimiento en Tag Manager sobre el enlace de la imagen.
 - Con video MP4/WebM o YouTube se muestra un botón adicional debajo del video con la URL, el target, el ID Tag Manager y un texto configurable (por defecto `Más información`).
-- Carga diferida de video: el MP4/WebM usa `preload="none"` y el iframe de YouTube (`youtube-nocookie.com`) solo se carga al mostrar el modal; ambos se detienen al cerrarlo.
-- El modal de video se adapta a la proporción real del archivo MP4/WebM (vertical, horizontal o cuadrado) leyendo sus metadatos, sin franjas negras y limitado al alto de la pantalla. YouTube usa 16:9 y los enlaces `shorts/` se muestran en 9:16.
+- Portada obligatoria para video MP4/WebM (`_smp_video_poster_id`): imagen de la biblioteca de medios que se muestra como `poster` mientras el video carga, en lugar de una pantalla negra.
+- Campos obligatorios para publicar: video MP4/WebM exige video, portada, título móvil y descripción corta; YouTube exige título móvil y descripción corta. El botón Publicar/Actualizar avisa en el editor y, si faltan, el servidor guarda el modal como borrador con un aviso. Guardar borrador sigue permitido. Los modales de video ya publicados sin portada se siguen mostrando hasta que se vuelvan a guardar.
+- Versión móvil para video MP4/WebM y YouTube (`_smp_mobile_title`, máx. 80 caracteres; `_smp_mobile_description`, máx. 160): por debajo de 800px se oculta el video y se muestran el título, la descripción corta y el mismo CTA. El video no se descarga en móvil. Los modales de imagen, y los de video sin versión móvil, siguen ocultos por debajo de 800px.
+- Carga de video priorizando la imagen: el MP4/WebM usa `preload="none"` y su portada va en `data-smp-poster`, así que no se descarga al cargar la página ni en móvil. En escritorio la portada se precarga con prioridad baja después del evento `load`; al abrir el modal se muestra la portada y solo cuando termina de cargar se pide la metadata del video.
+- YouTube con miniatura previa: al abrir el modal se muestra la miniatura del video (`i.ytimg.com`, `hqdefault.jpg`) con un botón de reproducir. El reproductor de `youtube-nocookie.com` (con `autoplay=1`) solo se carga al pulsarlo, así que basta un clic, igual que antes. Al cerrar el modal se detiene el video y vuelve la miniatura.
+- El modal de video se adapta a la proporción real del archivo MP4/WebM (vertical, horizontal o cuadrado) sin franjas negras y limitado al alto de la pantalla. La proporción se envía desde PHP con el ancho y alto que WordPress guarda en la metadata del video (o, si faltan, con las dimensiones de la portada), así el modal aparece desde el inicio con su forma final y no salta de 16:9 a vertical; el JS la confirma al leer la metadata del archivo. YouTube usa 16:9 y los enlaces `shorts/` se muestran en 9:16.
 - Imagen obligatoria para publicar.
+- Solo visible en desktop: por debajo de 800px de viewport el modal no se abre (guard en `frontend.js` con `matchMedia`), no carga su video ni consume la frecuencia; `frontend.css` también lo oculta como respaldo.
 - Columnas administrativas de estado, activo y páginas asignadas.
 - Tabla informativa de páginas donde hay modales activos.
 - Assets separados para admin y frontend.

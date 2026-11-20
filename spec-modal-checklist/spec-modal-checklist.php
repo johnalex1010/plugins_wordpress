@@ -104,6 +104,20 @@ function smp_translate($text)
     'Video del Modal' => 'Modal Video',
     'Seleccionar Video' => 'Select Video',
     'Usar Video' => 'Use Video',
+    'Portada del video' => 'Video cover',
+    'Obligatoria. Imagen que se muestra mientras el video carga, en lugar de una pantalla negra.' => 'Required. Image shown while the video loads, instead of a black screen.',
+    'El video y la portada son obligatorios para publicar el modal.' => 'The video and cover are required to publish the modal.',
+    'Completa los campos obligatorios del tipo de contenido antes de publicar el modal.' => 'Complete the required fields for the content type before publishing the modal.',
+    'El modal quedó como borrador porque faltan campos obligatorios para publicarlo.' => 'The modal was saved as a draft because required fields are missing.',
+    'Seleccionar portada' => 'Select cover',
+    'Usar portada' => 'Use cover',
+    'Quitar portada' => 'Remove cover',
+    'Versión móvil' => 'Mobile version',
+    'En pantallas menores a 800px el video se oculta y se muestran este título y esta descripción con el mismo botón. Ambos son obligatorios para publicar el modal.' => 'On screens narrower than 800px the video is hidden and this title and description are shown with the same button. Both are required to publish the modal.',
+    'Título móvil' => 'Mobile title',
+    'Descripción corta' => 'Short description',
+    'Máximo %d caracteres.' => 'Maximum %d characters.',
+    'Reproducir video: %s' => 'Play video: %s',
     'Formatos permitidos: MP4 y WebM.' => 'Allowed formats: MP4 and WebM.',
     'URL de YouTube' => 'YouTube URL',
     'Acepta enlaces de youtube.com, youtu.be y YouTube Shorts.' => 'Accepts youtube.com, youtu.be and YouTube Shorts links.',
@@ -169,6 +183,63 @@ function smp_sanitize_video_attachment_id($attachment_id)
   }
 
   return in_array(get_post_mime_type($attachment_id), smp_get_allowed_video_mime_types(), true) ? $attachment_id : 0;
+}
+
+function smp_sanitize_image_attachment_id($attachment_id)
+{
+  $attachment_id = absint($attachment_id);
+
+  return $attachment_id && wp_attachment_is_image($attachment_id) ? $attachment_id : 0;
+}
+
+/* Versión móvil: por debajo de 800px los modales de video y YouTube muestran título, descripción corta y CTA. */
+function smp_get_mobile_title_max_length()
+{
+  return 80;
+}
+
+function smp_get_mobile_description_max_length()
+{
+  return 160;
+}
+
+function smp_limit_text_length($text, $max_length)
+{
+  return function_exists('mb_substr') ? mb_substr($text, 0, $max_length) : substr($text, 0, $max_length);
+}
+
+function smp_sanitize_mobile_title($title)
+{
+  return smp_limit_text_length(sanitize_text_field((string) $title), smp_get_mobile_title_max_length());
+}
+
+function smp_sanitize_mobile_description($description)
+{
+  return smp_limit_text_length(sanitize_textarea_field((string) $description), smp_get_mobile_description_max_length());
+}
+
+function smp_media_type_has_mobile_version($media_type)
+{
+  return in_array($media_type, ['video', 'youtube'], true);
+}
+
+function smp_get_modal_mobile_content($modal_id)
+{
+  return [
+    'title' => smp_sanitize_mobile_title(get_post_meta($modal_id, '_smp_mobile_title', true)),
+    'description' => smp_sanitize_mobile_description(get_post_meta($modal_id, '_smp_mobile_description', true)),
+  ];
+}
+
+function smp_modal_has_mobile_version($modal_id, $media_type)
+{
+  if (!smp_media_type_has_mobile_version($media_type)) {
+    return false;
+  }
+
+  $mobile_content = smp_get_modal_mobile_content($modal_id);
+
+  return $mobile_content['title'] !== '' && $mobile_content['description'] !== '';
 }
 
 function smp_get_youtube_video_id($url)
@@ -509,6 +580,8 @@ add_action('admin_enqueue_scripts', function ($hook) {
     'videoMediaTitle' => smp_translate('Seleccionar Video'),
     'videoMediaButton' => smp_translate('Usar Video'),
     'videoMimeTypes' => smp_get_allowed_video_mime_types(),
+    'posterMediaTitle' => smp_translate('Seleccionar portada'),
+    'posterMediaButton' => smp_translate('Usar portada'),
   ]);
 });
 
@@ -650,7 +723,9 @@ function smp_meta_callback($post)
   $media_type = smp_get_modal_media_type($post->ID);
   $video_id = smp_sanitize_video_attachment_id(get_post_meta($post->ID, '_smp_video_id', true));
   $video_url = $video_id ? wp_get_attachment_url($video_id) : '';
+  $video_poster_id = smp_sanitize_image_attachment_id(get_post_meta($post->ID, '_smp_video_poster_id', true));
   $youtube_url = get_post_meta($post->ID, '_smp_youtube_url', true);
+  $mobile_content = smp_get_modal_mobile_content($post->ID);
   $media_type_labels = [
     'image' => smp_translate('Imagen'),
     'video' => smp_translate('Video MP4/WebM'),
@@ -768,6 +843,10 @@ function smp_meta_callback($post)
       <?php endforeach; ?>
     </fieldset>
 
+    <div id="smp_required_fields_notice" class="notice notice-error inline smp-required-notice" hidden>
+      <p><?php echo smp_esc_html('Completa los campos obligatorios del tipo de contenido antes de publicar el modal.'); ?></p>
+    </div>
+
     <div class="smp-media-section" data-smp-media-section="image" <?php echo $media_type === 'image' ? '' : 'hidden'; ?>>
       <h4><?php echo smp_esc_html('Imagen del Modal'); ?></h4>
       <input type="hidden" id="smp_image_id" name="smp_image_id" value="<?php echo esc_attr($image_id); ?>">
@@ -784,7 +863,7 @@ function smp_meta_callback($post)
 
     <div class="smp-media-section" data-smp-media-section="video" <?php echo $media_type === 'video' ? '' : 'hidden'; ?>>
       <h4><?php echo smp_esc_html('Video del Modal'); ?></h4>
-      <p class="description"><?php echo smp_esc_html('Formatos permitidos: MP4 y WebM.'); ?></p>
+      <p class="description"><?php echo smp_esc_html('Formatos permitidos: MP4 y WebM.'); ?> <?php echo smp_esc_html('El video y la portada son obligatorios para publicar el modal.'); ?></p>
       <input type="hidden" id="smp_video_id" name="smp_video_id" value="<?php echo esc_attr($video_id); ?>">
       <button type="button" class="button" id="smp_upload_video_button"><?php echo smp_esc_html('Seleccionar Video'); ?></button>
 
@@ -793,6 +872,20 @@ function smp_meta_callback($post)
           <video src="<?php echo esc_url($video_url); ?>" controls preload="metadata"></video>
         <?php endif; ?>
       </div>
+
+      <h4><?php echo smp_esc_html('Portada del video'); ?></h4>
+      <p class="description"><?php echo smp_esc_html('Obligatoria. Imagen que se muestra mientras el video carga, en lugar de una pantalla negra.'); ?></p>
+      <input type="hidden" id="smp_video_poster_id" name="smp_video_poster_id" value="<?php echo esc_attr($video_poster_id); ?>">
+      <button type="button" class="button" id="smp_upload_video_poster_button"><?php echo smp_esc_html('Seleccionar portada'); ?></button>
+      <button type="button" class="button-link button-link-delete smp-remove-media" id="smp_remove_video_poster_button" data-smp-input="#smp_video_poster_id" data-smp-preview="#smp_video_poster_preview" <?php echo $video_poster_id ? '' : 'hidden'; ?>><?php echo smp_esc_html('Quitar portada'); ?></button>
+
+      <div id="smp_video_poster_preview" class="smp-image-preview">
+        <?php
+        if ($video_poster_id) {
+          echo wp_kses_post(wp_get_attachment_image($video_poster_id, 'medium'));
+        }
+        ?>
+      </div>
     </div>
 
     <div class="smp-media-section" data-smp-media-section="youtube" <?php echo $media_type === 'youtube' ? '' : 'hidden'; ?>>
@@ -800,6 +893,22 @@ function smp_meta_callback($post)
         <label for="smp_youtube_url"><strong><?php echo smp_esc_html('URL de YouTube'); ?></strong></label>
         <input type="url" name="smp_youtube_url" id="smp_youtube_url" class="smp-field__control" placeholder="https://www.youtube.com/watch?v=" value="<?php echo esc_attr($youtube_url); ?>">
         <span class="description"><?php echo smp_esc_html('Acepta enlaces de youtube.com, youtu.be y YouTube Shorts.'); ?></span>
+      </p>
+    </div>
+
+    <div class="smp-media-section" data-smp-media-section="video youtube" <?php echo smp_media_type_has_mobile_version($media_type) ? '' : 'hidden'; ?>>
+      <h4><?php echo smp_esc_html('Versión móvil'); ?></h4>
+      <p class="description"><?php echo smp_esc_html('En pantallas menores a 800px el video se oculta y se muestran este título y esta descripción con el mismo botón. Ambos son obligatorios para publicar el modal.'); ?></p>
+
+      <p class="smp-field">
+        <label for="smp_mobile_title"><strong><?php echo smp_esc_html('Título móvil'); ?></strong></label>
+        <input type="text" name="smp_mobile_title" id="smp_mobile_title" class="smp-field__control" maxlength="<?php echo esc_attr(smp_get_mobile_title_max_length()); ?>" value="<?php echo esc_attr($mobile_content['title']); ?>">
+      </p>
+
+      <p class="smp-field">
+        <label for="smp_mobile_description"><strong><?php echo smp_esc_html('Descripción corta'); ?></strong></label>
+        <textarea name="smp_mobile_description" id="smp_mobile_description" class="smp-field__control" rows="3" maxlength="<?php echo esc_attr(smp_get_mobile_description_max_length()); ?>"><?php echo esc_textarea($mobile_content['description']); ?></textarea>
+        <span class="description"><?php echo esc_html(sprintf(smp_translate('Máximo %d caracteres.'), smp_get_mobile_description_max_length())); ?></span>
       </p>
     </div>
 
@@ -889,9 +998,17 @@ function smp_save_meta($post_id)
   $video_id = isset($_POST['smp_video_id']) ? smp_sanitize_video_attachment_id(wp_unslash($_POST['smp_video_id'])) : 0;
   update_post_meta($post_id, '_smp_video_id', $video_id);
 
+  $video_poster_id = isset($_POST['smp_video_poster_id']) ? smp_sanitize_image_attachment_id(wp_unslash($_POST['smp_video_poster_id'])) : 0;
+  update_post_meta($post_id, '_smp_video_poster_id', $video_poster_id);
+
+  $mobile_title = isset($_POST['smp_mobile_title']) ? smp_sanitize_mobile_title(wp_unslash($_POST['smp_mobile_title'])) : '';
+  update_post_meta($post_id, '_smp_mobile_title', $mobile_title);
+
+  $mobile_description = isset($_POST['smp_mobile_description']) ? smp_sanitize_mobile_description(wp_unslash($_POST['smp_mobile_description'])) : '';
+  update_post_meta($post_id, '_smp_mobile_description', $mobile_description);
+
   $youtube_url = isset($_POST['smp_youtube_url']) ? smp_sanitize_youtube_url(wp_unslash($_POST['smp_youtube_url'])) : '';
   update_post_meta($post_id, '_smp_youtube_url', $youtube_url);
-
 }
 add_action('save_post', 'smp_save_meta');
 
@@ -908,13 +1025,77 @@ add_filter('wp_insert_post_data', function ($data, $postarr) {
   $end_date = isset($_POST['smp_end_date'])
     ? smp_sanitize_schedule_date(wp_unslash($_POST['smp_end_date']))
     : ($post_id ? smp_sanitize_schedule_date(get_post_meta($post_id, '_smp_end_date', true)) : '');
+  $requires_publication = in_array($data['post_status'], ['publish', 'future'], true);
 
-  if (in_array($data['post_status'], ['publish', 'future'], true) && $end_date && time() > smp_get_schedule_timestamp($end_date, 'end')) {
+  if ($requires_publication && smp_is_missing_required_media_fields($post_id)) {
+    $data['post_status'] = 'draft';
+
+    if (is_admin()) {
+      set_transient('smp_required_media_fields_notice_' . get_current_user_id(), 1, 60);
+    }
+  }
+
+  if ($requires_publication && $end_date && time() > smp_get_schedule_timestamp($end_date, 'end')) {
     $data['post_status'] = 'draft';
   }
 
   return $data;
 }, 10, 2);
+
+/**
+ * Devuelve el valor enviado en el formulario o, si no viene (por ejemplo, en edición rápida), el valor guardado.
+ */
+function smp_get_submitted_or_saved_value($post_id, $field_name, $meta_key, $sanitize_callback)
+{
+  if (isset($_POST[$field_name])) {
+    return call_user_func($sanitize_callback, wp_unslash($_POST[$field_name]));
+  }
+
+  return $post_id ? call_user_func($sanitize_callback, get_post_meta($post_id, $meta_key, true)) : call_user_func($sanitize_callback, '');
+}
+
+/**
+ * Video MP4/WebM exige video, portada, título móvil y descripción corta; YouTube exige título móvil y descripción corta.
+ */
+function smp_is_missing_required_media_fields($post_id)
+{
+  $media_type = smp_get_submitted_or_saved_value($post_id, 'smp_media_type', '_smp_media_type', 'smp_sanitize_media_type');
+
+  if (!smp_media_type_has_mobile_version($media_type)) {
+    return false;
+  }
+
+  $mobile_title = smp_get_submitted_or_saved_value($post_id, 'smp_mobile_title', '_smp_mobile_title', 'smp_sanitize_mobile_title');
+  $mobile_description = smp_get_submitted_or_saved_value($post_id, 'smp_mobile_description', '_smp_mobile_description', 'smp_sanitize_mobile_description');
+
+  if ($mobile_title === '' || $mobile_description === '') {
+    return true;
+  }
+
+  if ($media_type !== 'video') {
+    return false;
+  }
+
+  $video_id = smp_get_submitted_or_saved_value($post_id, 'smp_video_id', '_smp_video_id', 'smp_sanitize_video_attachment_id');
+  $video_poster_id = smp_get_submitted_or_saved_value($post_id, 'smp_video_poster_id', '_smp_video_poster_id', 'smp_sanitize_image_attachment_id');
+
+  return !$video_id || !$video_poster_id;
+}
+
+add_action('admin_notices', function () {
+  $notice_key = 'smp_required_media_fields_notice_' . get_current_user_id();
+
+  if (!get_transient($notice_key)) {
+    return;
+  }
+
+  delete_transient($notice_key);
+?>
+  <div class="notice notice-error is-dismissible">
+    <p><?php echo smp_esc_html('El modal quedó como borrador porque faltan campos obligatorios para publicarlo.'); ?></p>
+  </div>
+  <?php
+});
 
 /* =====================================================
    6. MOTOR DE REGLAS
@@ -1069,9 +1250,15 @@ function smp_get_modal_video_html($modal_id, $modal_title)
     return '';
   }
 
-  // preload="none" evita descargar el video mientras el modal está oculto; el JS lo activa al mostrarlo.
+  $poster_id = smp_sanitize_image_attachment_id(get_post_meta($modal_id, '_smp_video_poster_id', true));
+  $poster_url = $poster_id ? wp_get_attachment_image_url($poster_id, 'large') : '';
+  $poster_attribute = $poster_url ? ' data-smp-poster="' . esc_url($poster_url) . '"' : '';
+
+  // preload="none" evita descargar el video mientras el modal está oculto.
+  // La portada va en data-smp-poster para que no se descargue al cargar la página (ni en mobile, donde el video se oculta):
+  // el JS la asigna como poster al mostrar el modal y solo pide la metadata del video cuando la portada ya cargó.
   return '<div class="smp-media smp-media--video">'
-    . '<video class="smp-modal__video" controls playsinline preload="none" aria-label="' . esc_attr($modal_title) . '">'
+    . '<video class="smp-modal__video" controls playsinline preload="none"' . $poster_attribute . ' aria-label="' . esc_attr($modal_title) . '">'
     . '<source src="' . esc_url($video_url) . '" type="' . esc_attr(get_post_mime_type($video_id)) . '">'
     . '</video>'
     . '</div>';
@@ -1085,13 +1272,21 @@ function smp_get_modal_youtube_html($modal_id, $modal_title)
     return '';
   }
 
-  $embed_url = 'https://www.youtube-nocookie.com/embed/' . rawurlencode($youtube_video_id) . '?rel=0';
+  // autoplay=1 aplica solo cuando el usuario pulsa la miniatura, así un único clic inicia el video.
+  $embed_url = 'https://www.youtube-nocookie.com/embed/' . rawurlencode($youtube_video_id) . '?rel=0&autoplay=1';
+  $thumbnail_url = 'https://i.ytimg.com/vi/' . rawurlencode($youtube_video_id) . '/hqdefault.jpg';
+  $play_label = sprintf(smp_translate('Reproducir video: %s'), $modal_title);
 
-  // El iframe se carga con data-smp-src para no pedir recursos a YouTube hasta que el modal se muestre.
+  // Primero se muestra la miniatura (liviana) y el reproductor de YouTube solo se carga al hacer clic.
+  // Miniatura e iframe usan data-smp-src para no pedir nada a YouTube hasta que el modal se muestre en escritorio.
   return '<div class="smp-media smp-media--youtube">'
+    . '<button type="button" class="smp-youtube-facade" aria-label="' . esc_attr($play_label) . '">'
+    . '<img class="smp-youtube-facade__image" data-smp-src="' . esc_url($thumbnail_url) . '" alt="" width="480" height="360" decoding="async">'
+    . '<span class="smp-youtube-facade__play" aria-hidden="true"></span>'
+    . '</button>'
     . '<iframe class="smp-modal__youtube" data-smp-src="' . esc_url($embed_url) . '" title="' . esc_attr($modal_title) . '"'
     . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"'
-    . ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>'
+    . ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>'
     . '</div>';
 }
 
@@ -1122,7 +1317,64 @@ function smp_get_modal_content_html($modal_id, $media_type, $modal_title)
     return '';
   }
 
-  return $video_html . smp_get_modal_cta_button_html($cta);
+  return $video_html . smp_get_modal_mobile_html($modal_id, $media_type) . smp_get_modal_cta_button_html($cta);
+}
+
+// Bloque de texto que reemplaza al video por debajo de 800px; usa párrafos para no alterar la jerarquía de encabezados de la página.
+function smp_get_modal_mobile_html($modal_id, $media_type)
+{
+  if (!smp_modal_has_mobile_version($modal_id, $media_type)) {
+    return '';
+  }
+
+  $mobile_content = smp_get_modal_mobile_content($modal_id);
+
+  return '<div class="smp-modal__mobile">'
+    . '<h2 class="smp-modal__mobile-title">' . esc_html($mobile_content['title']) . '</h2>'
+    . '<p class="smp-modal__mobile-description">' . esc_html($mobile_content['description']) . '</p>'
+    . '</div>';
+}
+
+/**
+ * Dimensiones del video MP4/WebM para que el modal se muestre desde el inicio con su proporción real
+ * (vertical u horizontal) y no con 16:9 mientras el navegador descarga la metadata.
+ * Usa la metadata que WordPress guarda al subir el video y, si no existe, las dimensiones de la portada.
+ */
+function smp_get_modal_video_dimensions($modal_id)
+{
+  $video_id = smp_sanitize_video_attachment_id(get_post_meta($modal_id, '_smp_video_id', true));
+  $video_metadata = $video_id ? wp_get_attachment_metadata($video_id) : false;
+
+  if (is_array($video_metadata) && !empty($video_metadata['width']) && !empty($video_metadata['height'])) {
+    return [
+      'width' => absint($video_metadata['width']),
+      'height' => absint($video_metadata['height']),
+    ];
+  }
+
+  $poster_id = smp_sanitize_image_attachment_id(get_post_meta($modal_id, '_smp_video_poster_id', true));
+  $poster_image = $poster_id ? wp_get_attachment_image_src($poster_id, 'large') : false;
+
+  if (is_array($poster_image) && !empty($poster_image[1]) && !empty($poster_image[2])) {
+    return [
+      'width' => absint($poster_image[1]),
+      'height' => absint($poster_image[2]),
+    ];
+  }
+
+  return null;
+}
+
+// La proporción depende de cada video, por eso se entrega como custom property inline en lugar de una clase fija.
+function smp_get_modal_style_attribute($modal_id, $media_type)
+{
+  $video_dimensions = $media_type === 'video' ? smp_get_modal_video_dimensions($modal_id) : null;
+
+  if (!$video_dimensions || !$video_dimensions['width'] || !$video_dimensions['height']) {
+    return '';
+  }
+
+  return ' style="' . esc_attr('--smp-video-ratio: ' . $video_dimensions['width'] . ' / ' . $video_dimensions['height'] . ';') . '"';
 }
 
 function smp_get_modal_classes($modal_id, $media_type)
@@ -1132,6 +1384,11 @@ function smp_get_modal_classes($modal_id, $media_type)
   }
 
   $modal_classes = ['smp-modal', 'smp-modal--video'];
+  $video_dimensions = $media_type === 'video' ? smp_get_modal_video_dimensions($modal_id) : null;
+
+  if ($video_dimensions && $video_dimensions['width'] && $video_dimensions['height']) {
+    $modal_classes[] = $video_dimensions['height'] > $video_dimensions['width'] ? 'smp-modal--portrait' : 'smp-modal--landscape';
+  }
 
   // El iframe de YouTube no expone sus dimensiones, por eso los Shorts se marcan como verticales desde PHP.
   if ($media_type === 'youtube' && smp_is_youtube_short_url(get_post_meta($modal_id, '_smp_youtube_url', true))) {
@@ -1173,9 +1430,12 @@ function smp_render_modals()
     $media_type = smp_get_modal_media_type($modal_id);
     $modal_classes = smp_get_modal_classes($modal_id, $media_type);
     $content_html = smp_get_modal_content_html($modal_id, $media_type, $modal_title);
-?>
-    <div class="smp-overlay" id="smp-<?php echo esc_attr($modal_id); ?>" data-smp-delay="<?php echo esc_attr($delay); ?>" data-smp-frequency="<?php echo esc_attr($frequency); ?>">
-      <div class="<?php echo esc_attr($modal_classes); ?>" role="dialog" aria-modal="true" aria-label="<?php echo esc_attr($modal_title); ?>">
+    $overlay_classes = $content_html !== '' && smp_modal_has_mobile_version($modal_id, $media_type)
+      ? 'smp-overlay smp-overlay--has-mobile'
+      : 'smp-overlay';
+  ?>
+    <div class="<?php echo esc_attr($overlay_classes); ?>" id="smp-<?php echo esc_attr($modal_id); ?>" data-smp-delay="<?php echo esc_attr($delay); ?>" data-smp-frequency="<?php echo esc_attr($frequency); ?>">
+      <div class="<?php echo esc_attr($modal_classes); ?>"<?php echo smp_get_modal_style_attribute($modal_id, $media_type); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- El helper escapa el atributo. ?> role="dialog" aria-modal="true" aria-label="<?php echo esc_attr($modal_title); ?>">
         <button type="button" class="smp-close" aria-label="<?php echo smp_esc_attr('Cerrar modal'); ?>">&times;</button>
 
         <?php
